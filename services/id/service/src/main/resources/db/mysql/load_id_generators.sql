@@ -40,7 +40,7 @@ events in which a lot of one or more collection objects are
 acquired by the museum.</description>
   <parts>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -69,7 +69,7 @@ collection objects individually acquired by the museum.  This
 generator is used for collection objects without parts.</description>
   <parts>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -109,7 +109,7 @@ INSERT INTO `id_generators`
       <currentValue>AR</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -140,7 +140,7 @@ INSERT INTO `id_generators`
       <currentValue>EV</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -171,7 +171,7 @@ INSERT INTO `id_generators`
       <currentValue>IN</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -202,7 +202,7 @@ INSERT INTO `id_generators`
       <currentValue>IN</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -242,7 +242,7 @@ INSERT INTO `id_generators`
       <currentValue>LIB</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -273,7 +273,7 @@ INSERT INTO `id_generators`
       <currentValue>LI</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>
@@ -313,7 +313,7 @@ INSERT INTO `id_generators`
       <currentValue>ST</currentValue>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.YearIDGeneratorPart>
-      <currentValue>2009</currentValue>
+      <currentValue></currentValue>
     </org.collectionspace.services.id.YearIDGeneratorPart>
     <org.collectionspace.services.id.StringIDGeneratorPart>
       <initialValue>.</initialValue>

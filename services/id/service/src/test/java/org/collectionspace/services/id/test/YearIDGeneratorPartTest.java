@@ -47,7 +47,7 @@ public class YearIDGeneratorPartTest extends TestCase {
         return Integer.toString(y);
     }
 
-/*
+
     public void testCurrentID() {
 
         part = new YearIDGeneratorPart();
@@ -87,7 +87,6 @@ public class YearIDGeneratorPartTest extends TestCase {
         }
 
   }
-*/ 
 
 /*
     public void testnewID() {

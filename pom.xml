@@ -76,6 +76,7 @@
                 <enabled>false</enabled>
             </snapshots>            
         </repository>        
+<!--
         <repository>
             <id>java.net</id>
             <name>java.net Maven Repository</name>
@@ -85,6 +86,7 @@
                 <enabled>false</enabled>
             </snapshots>            
         </repository>
+-->        
         <repository>
             <id>maven2-repository.dev.java.net</id>
             <name>Java.net Maven 2 Repository</name>
@@ -118,12 +120,14 @@
     </repositories>
     
     <pluginRepositories>
+<!--
         <pluginRepository>
             <id>java.net</id>
             <name>java.net Maven Repository</name>
             <url>https://maven-repository.dev.java.net/nonav/repository</url>
             <layout>legacy</layout>
         </pluginRepository>
+-->        
         <pluginRepository>
             <id>maven2-repository.dev.java.net</id>
             <name>Java.net Maven 2 Repository</name>

@@ -21,10 +21,11 @@
  * limitations under the License.
  */
 
-package org.collectionspace.services.id;
+package org.collectionspace.services.id.test;
 
-import static org.junit.Assert.fail;
 import junit.framework.TestCase;
+import org.collectionspace.services.id.IDGeneratorPart;
+import org.collectionspace.services.id.UUIDGeneratorPart;
 
 /**
  * UUIDGeneratorPartTest

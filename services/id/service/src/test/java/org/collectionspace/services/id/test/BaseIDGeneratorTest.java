@@ -21,16 +21,11 @@
  * limitations under the License.
  */
 
-package org.collectionspace.services.id;
+package org.collectionspace.services.id.test;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Vector;
-
 import junit.framework.TestCase;
-import static org.junit.Assert.fail;
-
-import org.collectionspace.services.id.YearIDGeneratorPart;
+import org.collectionspace.services.id.*;
 
 /**    
  * BaseIDGeneratorTest, Test class for BaseIDGenerator.

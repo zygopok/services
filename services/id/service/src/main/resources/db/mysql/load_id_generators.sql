@@ -48,8 +48,8 @@ acquired by the museum.</description>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -86,8 +86,8 @@ generator is used for collection objects without parts.</description>
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -117,8 +117,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -148,8 +148,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -179,8 +179,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -219,8 +219,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -250,8 +250,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -290,8 +290,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');
@@ -321,8 +321,8 @@ INSERT INTO `id_generators`
     </org.collectionspace.services.id.StringIDGeneratorPart>
     <org.collectionspace.services.id.NumericIDGeneratorPart>
       <maxLength>6</maxLength>
-      <initialValue>0</initialValue>
-      <currentValue>0</currentValue>
+      <initialValue>1</initialValue>
+      <currentValue>1</currentValue>
     </org.collectionspace.services.id.NumericIDGeneratorPart>
   </parts>
 </org.collectionspace.services.id.SettableIDGenerator>');

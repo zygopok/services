@@ -266,7 +266,7 @@ public class AcquisitionServiceTest extends AbstractServiceTest {
                 logger.debug(testName + ": list-item[" + i + "] csid=" +
                         item.getCsid());
                 logger.debug(testName + ": list-item[" + i + "] objectNumber=" +
-                        item.getAccessionDate());
+                        item.getAcquisitionReferenceNumber());
                 logger.debug(testName + ": list-item[" + i + "] URI=" +
                         item.getUri());
                 i++;

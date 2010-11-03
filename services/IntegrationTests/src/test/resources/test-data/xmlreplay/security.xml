@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmlReplay>
+    <protoHostPort>http://localhost:8180</protoHostPort>
+    <auths>
+        <!-- IMPORTANT: THESE ARE STICKY :: THEY STICK AROUND UNTIL RESET, IN EXEC ORDER OF THIS FILE. -->
+        <auth ID="test">dGVzdDp0ZXN0</auth>
+        <auth ID="test-pahma">dGVzdC1wYWhtYTp0ZXN0</auth>
+        <auth ID="user1@museum1">dXNlcjFAbXVzZXVtMS5vcmc6dXNlcjFAbXVzZXVtMS5vcmc=</auth>
+        <auth ID="bigbird2010">YmlnYmlyZDIwMTA6YmlnYmlyZDIwMTA=</auth>
+        <auth ID="elmo2010">ZWxtbzIwMTA6ZWxtbzIwMTA=</auth>
+    </auths>
+    <testGroup ID="security" autoDeletePOSTS="false">
+
+        <!--First test that bigbird2010 does NOT have write access: -->
+        <test ID="dimension1"  auth="bigbird2010">
+            <expectedCodes>401,500,501</expectedCodes>
+            <method>POST</method>
+            <uri>/cspace-services/dimensions/</uri>
+            <part>
+                <label>dimensions_common</label>
+                <filename>dimension/1.xml</filename>
+            </part>
+        </test>
+
+        <!--Next, set up permissions and roles, and test bigbird2010 and elmo2010. -->
+        <test ID="permBigbird" auth="test">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/permissions</uri>
+            <filename>security/1-bigbird-permission.xml</filename>
+        </test>
+        <test ID="permElmo">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/permissions</uri>
+            <filename>security/2-elmo-permission.xml</filename>
+        </test>
+        <test ID="roleTestCM">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/roles</uri>
+            <filename>security/3-role-test-cm.xml</filename>
+        </test>
+        <test ID="roleIntern">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/roles</uri>
+            <filename>security/4-role-intern.xml</filename>
+        </test>
+        <test ID="accountBigbird">
+            <method>POST</method>
+            <uri>/cspace-services/accounts</uri>
+            <filename>security/5-account-bigbird.xml</filename>
+        </test>
+        <test ID="accountElmo">
+            <method>POST</method>
+            <uri>/cspace-services/accounts</uri>
+            <filename>security/6-account-elmo.xml</filename>
+        </test>
+        <test ID="accountrolesBigbird">
+            <method>POST</method>
+            <uri>/cspace-services/accounts/${accountBigbird.CSID}/accountroles</uri>
+            <filename>security/7-accountroles-bigbird.xml</filename>
+        </test>
+        <test ID="accountrolesElmo">
+            <method>POST</method>
+            <uri>/cspace-services/accounts/${accountElmo.CSID}/accountroles</uri>
+            <filename>security/8-account-roles-elmo.xml</filename>
+        </test>
+        <test ID="bigbirdPermroles">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/permissions/${permBigbird.CSID}/permroles</uri>
+            <filename>security/9-permissionroles-bigbird.xml</filename>
+        </test>
+        <test ID="elmoPermroles">
+            <method>POST</method>
+            <uri>/cspace-services/authorization/permissions/${permElmo.CSID}/permroles</uri>
+            <filename>security/10-permissionroles-elmo.xml</filename>
+        </test>
+
+        <test ID="dimension1"  auth="bigbird2010">
+            <method>POST</method>
+            <uri>/cspace-services/dimensions/</uri>
+            <part>
+                <label>dimensions_common</label>
+                <filename>dimension/1.xml</filename>
+            </part>
+        </test>
+        <test ID="dimension2">
+            <method>PUT</method>
+            <uri>/cspace-services/dimensions/${dimension1.CSID}</uri>
+            <part>
+                <label>dimensions_common</label>
+                <filename>dimension/2-put.xml</filename>
+            </part>
+        </test>
+        <test>
+            <method>GET</method>
+            <uri>/cspace-services/dimensions/</uri>
+            <fromTestID>dimension1</fromTestID>
+        </test>
+        <test ID="dimensionElmoPOST"  auth="elmo2010">
+            <expectedCodes>403</expectedCodes>
+            <method>POST</method>
+            <uri>/cspace-services/dimensions/</uri>
+            <part>
+                <label>dimensions_common</label>
+                <filename>dimension/1.xml</filename>
+            </part>
+        </test>
+        <test ID="dimensionElmoPUT">
+            <expectedCodes>403</expectedCodes>
+            <method>PUT</method>
+            <uri>/cspace-services/dimensions/${dimension1.CSID}</uri>
+            <part>
+                <label>dimensions_common</label>
+                <filename>dimension/2-put.xml</filename>
+            </part>
+        </test>
+        <test ID="dimensionElmoGET">
+            <method>GET</method>
+            <uri>/cspace-services/dimensions/</uri>
+            <fromTestID>dimension1</fromTestID>
+        </test>
+        <test ID="dimensionElmoDELETE" auth="elmo2010">
+            <expectedCodes>403</expectedCodes>
+            <method>DELETE</method>
+            <fromTestID>dimension1</fromTestID>
+        </test>
+        <test ID="dimensionBigbirdDELETE" auth="bigbird2010">
+            <method>DELETE</method>
+            <fromTestID>dimension1</fromTestID>
+        </test>
+
+        <!--   The element:  <action>SEARCH </action>  implies LIST
+               in C:\bin\xmlreplay\test-data\xmlReplay\security\1-bigbird-permission.xml
+               Add DELETE, do CRUD for both, then switch roles and redo CRUD
+        -->
+
+
+        <test auth="test">
+            <method>DELETE</method>
+            <uri>/cspace-services/authorization/permissions/${permBigbird.CSID}/permroles</uri>
+            <!-- don't do <fromTestID>, no CSID of permrole on end of url, but deleteURL will put one there for you, so don't use it.
+                wrong: <fromTestID>bigbirdPermroles</fromTestID>
+                wrong: http://localhost:8280/cspace-services/authorization/permissions/28943d0f-efac-48d3-8c01-e4ef7e75e296/permroles/0891ca9a-ba34-4701-9662-4ab73757890e
+                Create a <uri> element instead:
+                right: http://localhost:8280/cspace-services/authorization/permissions/28943d0f-efac-48d3-8c01-e4ef7e75e296/permroles
+            -->
+        </test>
+        <test>
+            <method>DELETE</method>
+            <uri>/cspace-services/authorization/permissions/${permElmo.CSID}/permroles</uri>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <uri>/cspace-services/accounts/${accountBigbird.CSID}/accountroles</uri>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <uri>/cspace-services/accounts/${accountElmo.CSID}/accountroles</uri>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <!-- These both work, and fromTestID takes precedence. -->
+            <uri>${roleTestCM.deleteURL}</uri>
+            <fromTestID>roleTestCM</fromTestID>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <fromTestID>roleIntern</fromTestID>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <fromTestID>accountBigbird</fromTestID>
+        </test>
+        <test>
+            <method>DELETE</method>
+            <fromTestID>accountElmo</fromTestID>
+        </test>
+        <!-- delete permissions.  Don't delete permissions, or Admin will get hosed. -->
+    </testGroup>
+</xmlReplay>
+        

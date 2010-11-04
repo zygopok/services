@@ -1,32 +1,5 @@
 package org.collectionspace.services.IntegrationTests.xmlreplay;
-/*
-When this is a jar file, run like so:
 
-cd C:\src\trunk\services\IntegrationTests\xmlreplay\
-
-java -DxmlReplayBaseDir=.\src\test\resources\test-data\xmlReplay
-     -DtestGroup=2parts -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8008
-     -Xnoagent -Djava.compiler=NONE
-     -jar target\collectionspace-services-common-test-jar-with-dependencies.jar
-
-When you are in cspace trunk, inside maven, do these steps:
-
-     There is a bug, in that I define a log4j listener, but don't provide a log4jfile, so cheat:
-
-         touch C:\src\trunk\services\client\target\classes\log4j.properties
-
-     Set the opts for maven, but remember to unset them when you are done, or maven will drop into debug for the rest of this shell session.
-
-         set MAVEN_OPTS=-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8012
-         C:\src\trunk\services\client>set MAVEN_OPTS=-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8012 -verbose:class
-     Now launch maven exec:java
-
-          mvn  -Dmaven.surefire.debug exec:java  -DtestGroupID=organization -DxmlReplayBaseDir=C:\bin\xmlreplay\test-data\xmlReplay
-
-     Now you will fire up your debugger and remote to port 8012 or whatever you set above.
-
-
- */
 import org.apache.commons.cli.*;
 
 import org.apache.commons.jexl2.JexlContext;
@@ -41,7 +14,8 @@ import java.io.*;
 import java.util.*;
 
 /**  This class is used to replay a request to the Services layer, by sending the XML payload
- *   in an appropriate Multipart request.  See example usage in services/objectexit/client.
+ *   in an appropriate Multipart request.
+ *   See example usage in calling class XmlReplayTest in services/IntegrationTests, and also in main() in this class.
  *   @author Laramie Crocker
  */
 public class XmlReplay {
@@ -52,64 +26,40 @@ public class XmlReplay {
         this.variablesMap = createVariablesMap();
     }
 
-    public static class ServiceResult {
-        public String testID = "";
-        public String testGroupID = "";
-        public String fullURL = "";
-        public String deleteURL = "";
-        public String location = "";
-        public String CSID = "";
-        public String subresourceCSID = "";
-        public String result = "";
-        public int responseCode = 0;
-        public String responseMessage = "";
-        public String method = "";
-        public String error = "";
-        public String fromTestID = "";
-        public String auth = "";
-        public List<Integer> expectedCodes = new ArrayList<Integer>();
-        public boolean gotExpectedResult(){
-            for (Integer oneExpected : expectedCodes){
-                if (responseCode == oneExpected){
-                    return true;
-                }
-            }
-            if (0<responseCode && responseCode<200){
-                return false;
-            } else if (400<=responseCode) {
-                return false;
-            }
-            return true;
-        }
-        public String toString(){
-            return "{ServiceResult: "
-                    + ( Tools.notEmpty(testID) ? " testID:"+testID : "" )
-                    + ( Tools.notEmpty(testGroupID) ? "; testGroupID:"+testGroupID : "" )
-                    + ( Tools.notEmpty(fromTestID) ? "; fromTestID:"+fromTestID : "" )
-                    +"; "+method
-                    +"; "+responseCode
-                    + ( Tools.notEmpty(responseMessage) ? "; msg:"+responseMessage : "" )
-                    +"; URL:"+fullURL
-                    +";auth: "+auth
-                    + ( Tools.notEmpty(deleteURL) ? "; deleteURL:"+deleteURL : "" )
-                    + ( Tools.notEmpty(location) ? "; location.CSID:"+location : "" )
-                    + ( Tools.notEmpty(error) ? "; ERROR:"+error : "" )
-                    + ( Tools.notEmpty(result) ? "; result:"+result : "" )
-                    + ( (expectedCodes.size()>0) ? ";expectedCodes:"+expectedCodes : "" )
-                    + ";gotExpected:"+gotExpectedResult()
-                    +"}";
-        }
-    }
-
     public String toString(){
-        return "XmlReplay{"+this.basedir+", "+this.configFileName+'}';
+        return "XmlReplay{"+this.basedir+", "+this.configFileName+", "+this.defaultAuthsMap+", "+this.dump+'}';
     }
 
-    private static final String DEFAULT_CONFIG = "xml-replay-config.xml";
+    public static final String DEFAULT_CONFIG = "xml-replay-config.xml";
+    public static final String DEFAULT_MASTER_CONFIG = "xml-replay-master.xml";
 
     private String configFileName = DEFAULT_CONFIG;
     public String getConfigFileName() {
         return configFileName;
+    }
+
+    private String protoHostPort = "";
+    public String getProtoHostPort() {
+        return protoHostPort;
+    }
+    public void setProtoHostPort(String protoHostPort) {
+        this.protoHostPort = protoHostPort;
+    }
+
+    private Dump dump;
+    public Dump getDump() {
+        return dump;
+    }
+    public void setDump(Dump dump) {
+        this.dump = dump;
+    }
+
+    AuthsMap defaultAuthsMap;
+    public AuthsMap getDefaultAuthsMap(){
+        return defaultAuthsMap;
+    }
+    public void setDefaultAuthsMap(AuthsMap authsMap){
+        defaultAuthsMap = authsMap;
     }
 
     /** @param configFileName The default name is stored in XmlReplay.DEFAULT_CONFIG
@@ -126,30 +76,57 @@ public class XmlReplay {
     private Map<String, ServiceResult> serviceResultsMap;
     private Map<String, String> variablesMap;
 
-    // TODO: make this use the org.collectionspace.services.client.test.ServiceRequestType without messing up the jar dependencies for the stand-alone version.
-    private boolean responseCodeOK(ServiceResult pr){
-        int code = pr.responseCode;
-        if (0<code && code<200){
-            return false;
-        } else if (400<=code) {
-            return false;
-        } else {
-            return true;
+    public List<List<ServiceResult>> runMaster(String masterFile) throws Exception {
+        List<List<ServiceResult>> list = new ArrayList<List<ServiceResult>>();
+        Document document = getDocument(Tools.glue(basedir, "/", masterFile)); //will check full path first, then checks relative to PWD.
+        if (document == null){
+            throw new FileNotFoundException("XmlReplay master config file ("+masterFile+") not found in basedir: "+basedir+". Exiting test.");
         }
+        String protoHostPort = document.selectSingleNode("/xmlReplayMaster/protoHostPort").getText().trim();
+
+        String controlFile, testGroup, test;
+        List<Node> runNodes;
+        runNodes = document.selectNodes("/xmlReplayMaster/run");
+        for (Node runNode : runNodes) {
+            controlFile = runNode.valueOf("@controlFile");
+            testGroup = runNode.valueOf("@testGroup");
+            test = runNode.valueOf("@test");
+            XmlReplay replay = new XmlReplay(basedir);
+            replay.setConfigFileName(controlFile);
+            replay.setProtoHostPort(protoHostPort);
+            AuthsMap authsMap = readAuths(document);
+            replay.setDefaultAuthsMap(authsMap);
+            Dump dump = XmlReplay.readDumpOptions(document);
+            replay.setDump(dump);
+            List<ServiceResult> results = replay.runTestGroup(testGroup, test);
+            list.add(results);
+        }
+        return list;
     }
 
     public void runTest(String testGroupID, String testID) throws Exception {
         List<ServiceResult> result =
-            runXmlReplayFile(this.basedir, this.configFileName, testGroupID, testID, this.serviceResultsMap, this.variablesMap, false, false);
+            runXmlReplayFile(this.basedir, this.configFileName, testGroupID, testID,
+                             this.serviceResultsMap, this.variablesMap, false,
+                             dump,
+                             this.protoHostPort, this.defaultAuthsMap);
         for(ServiceResult pr: result){
-            if ( ! responseCodeOK(pr)){
+            if ( ! pr.gotExpectedResult()){
                 throw new Exception("Response code not expected: "+pr.responseCode+" in "+pr);
             }
         }
     }
 
+    /** Use this overload if you wish to run all tests within a testGroup.*/
     public List<ServiceResult> runTestGroup(String testGroupID) throws Exception {
-        return runXmlReplayFile(this.basedir, this.configFileName, testGroupID, "", createResultsMap(), createVariablesMap(), true, false);
+        return runTestGroup(testGroupID, "");
+    }
+
+    /** Use this overload if you wish to specify just ONE test to run within a testGroup.*/
+    public List<ServiceResult> runTestGroup(String testGroupID, String oneTestID) throws Exception {
+        return runXmlReplayFile(this.basedir, this.configFileName, testGroupID, oneTestID,
+                                createResultsMap(), createVariablesMap(), true, dump,
+                                this.protoHostPort, this.defaultAuthsMap);
     }
 
     public static Map<String, ServiceResult> createResultsMap(){
@@ -179,6 +156,61 @@ public class XmlReplay {
         return results;
     }
 
+    public static class AuthsMap {
+        Map<String,String> map;
+        String defaultID="";
+        public String getDefaultAuth(){
+            return map.get(defaultID);
+        }
+        public String toString(){
+            return "AuthsMap: {default='"+defaultID+"'; "+map.keySet()+'}';
+        }
+    }
+
+    public static AuthsMap readAuths(Document document){
+    Map<String, String> map = new HashMap<String, String>();
+        List<Node> authNodes = document.selectNodes("//auths/auth");
+        for (Node auth : authNodes) {
+            map.put(auth.valueOf("@ID"), auth.getStringValue());
+        }
+        AuthsMap authsMap = new AuthsMap();
+        Node auths = document.selectSingleNode("//auths");
+        String defaultID = "";
+        if (auths != null){
+            defaultID = auths.valueOf("@default");
+        }
+        authsMap.map = map;
+        authsMap.defaultID = defaultID;
+        return authsMap;
+    }
+
+    public static class Dump {
+        public boolean payloads = false;
+        public static final String[] dumpServiceResultOptions = ServiceResult.DUMP_OPTIONS;
+        public String dumpServiceResult = dumpServiceResultOptions[0];
+        public String toString(){
+            return "payloads: "+payloads+" dumpServiceResult: "+dumpServiceResult;
+        }
+    }
+
+    public static Dump getDumpConfig(){
+        return new Dump();
+    }
+
+    public static Dump readDumpOptions(Document document){
+        Dump dump = getDumpConfig();
+        Node dumpNode = document.selectSingleNode("//dump");
+        if (dumpNode != null){
+            dump.payloads = Tools.isTrue(dumpNode.valueOf("@payloads"));
+            String dumpServiceResult = dumpNode.valueOf("@dumpServiceResult");
+            if (Tools.notEmpty(dumpServiceResult)){
+                dump.dumpServiceResult = dumpServiceResult;
+            }
+        }
+        return dump;
+    }
+
+    //================= runXmlReplayFile ======================================================
 
     public static List<ServiceResult> runXmlReplayFile(String xmlReplayBaseDir,
                                           String configFileName,
@@ -187,10 +219,12 @@ public class XmlReplay {
                                           Map<String, ServiceResult> serviceResultsMap,
                                           Map<String, String> variablesMap,
                                           boolean param_autoDeletePOSTS,
-                                          boolean dumpResults)
+                                          Dump dump,
+                                          String protoHostPortParam,
+                                          AuthsMap defaultAuths)
                                           throws Exception {
         //Internally, we maintain two collections of ServiceResult:
-        //  the first is the return value of this method.  PostResults should only contain primitives, so this should not be a leak.
+        //  the first is the return value of this method.
         //  the second is the serviceResultsMap, which is used for keeping track of CSIDs created by POSTs.
 
         List<ServiceResult> results = new ArrayList<ServiceResult>();
@@ -199,14 +233,35 @@ public class XmlReplay {
         if (document == null){
             throw new FileNotFoundException("XmlReplay config file ("+configFileName+") not found in basedir: "+xmlReplayBaseDir+" Exiting test.");
         }
-        String php = document.selectSingleNode("/xmlReplay/protoHostPort").getText();
-        String protoHostPort = php.trim();
-
-        Map<String, String> authsMap = new HashMap<String, String>();
-        List<Node> auths = document.selectNodes("//auths/auth");
-        for (Node auth : auths) {
-            authsMap.put(auth.valueOf("@ID"), auth.getStringValue());
+        String protoHostPort;
+        if (Tools.isEmpty(protoHostPortParam)){
+            protoHostPort = document.selectSingleNode("/xmlReplay/protoHostPort").getText().trim();
+            System.out.println("DEPRECATED: Using protoHostPort ('"+protoHostPort+"') from xmlReplay file ('"+configFile+"'), not master.");
+        } else {
+            protoHostPort = protoHostPortParam;
         }
+        if (Tools.isEmpty(protoHostPort)){
+            throw new Exception("XmlReplay config file must have a protoHostPort element");
+        }
+
+        String authsMapINFO;
+        AuthsMap authsMap = readAuths(document);
+        if (authsMap.map.size()==0){
+            authsMap = defaultAuths;
+            authsMapINFO = "Using defaultAuths from master file: "+defaultAuths;
+        } else {
+            authsMapINFO = "Using AuthsMap from control file: "+authsMap;
+        }
+
+        System.out.println("XmlReplay running:"
+                          +"\r\n   controlFile: "+configFile
+                          +"\r\n   protoHostPort: "+protoHostPort
+                          +"\r\n   testGroup: "+testGroupID
+                          + (Tools.notEmpty(oneTestID) ? "\r\n   oneTestID: "+oneTestID : "")
+                          +"\r\n   AuthsMap: "+authsMapINFO
+                          +"\r\n   Dump info: "+dump
+                          +"\r\n");
+
 
         String autoDeletePOSTS = "";
         List<Node> testgroupNodes;
@@ -245,9 +300,12 @@ public class XmlReplay {
                 String initURI = uri;
 
                 String authIDForTest = testNode.valueOf("@auth");
-                String currentAuthForTest = authsMap.get(authIDForTest);
+                String currentAuthForTest = authsMap.map.get(authIDForTest);
                 if (Tools.notEmpty(currentAuthForTest)){
                     authForTest = currentAuthForTest; //else just run with current from last loop;
+                }
+                if (Tools.isEmpty(authForTest)){
+                    authForTest = defaultAuths.getDefaultAuth();
                 }
 
                 if (uri.indexOf("$")>-1){
@@ -397,8 +455,9 @@ public class XmlReplay {
                 if (Tools.isEmpty(oneResult.testID)) oneResult.testID = testIDLabel;
                 if (Tools.isEmpty(oneResult.testGroupID)) oneResult.testGroupID = testGroupID;
 
-                System.out.println("XmlReplay:"+testIDLabel+": "+oneResult+"\r\n");
-                if (dumpResults) System.out.println(oneResult.result);
+                String serviceResultRow = oneResult.dump(dump.dumpServiceResult);
+                System.out.println("XmlReplay:"+testIDLabel+": "+serviceResultRow+"\r\n");
+                if (dump.payloads) System.out.println(oneResult.result);
             }
             if (Tools.isTrue(autoDeletePOSTS)&&param_autoDeletePOSTS){
                 autoDelete(serviceResultsMap);
@@ -427,9 +486,6 @@ public class XmlReplay {
                 result = getPR.location;
             }
         }
-        //if (Tools.isEmpty(result)){
-        //    System.out.println("No location csid found in serviceResultsMap: "+serviceResultsMap);
-        //}
         return result;
     }
 
@@ -497,6 +553,7 @@ public class XmlReplay {
             String autoDeletePOSTS  = opt(line, "autoDeletePOSTS");
             String dumpResults      = opt(line, "dumpResults");
             String configFilename   = opt(line, "configFilename");
+            String xmlReplayMaster  = opt(line, "xmlReplayMaster");
 
             boolean bAutoDeletePOSTS = true;
             if (Tools.notEmpty(autoDeletePOSTS)) {
@@ -514,20 +571,41 @@ public class XmlReplay {
                 return;
             }
             File f = new File(Tools.glue(xmlReplayBaseDir, "/", configFilename));
-            if (!f.exists()){
+            if (Tools.isEmpty(configFilename) && !f.exists()){
                 System.err.println("Config file not found: "+f.getCanonicalPath());
                 return;
             }
+            File fMaster = new File(Tools.glue(xmlReplayBaseDir, "/", xmlReplayMaster));
+            if (Tools.notEmpty(xmlReplayMaster)  && !fMaster.exists()){
+                System.err.println("Master file not found: "+fMaster.getCanonicalPath());
+                return;
+            }
+
 
             System.out.println("XmlReplay ::"
                             + "\r\n    xmlReplayBaseDir: "+xmlReplayBaseDir
                             + "\r\n    configFilename: "+configFilename
+                            + "\r\n    xmlReplayMaster: "+xmlReplayMaster
                             + "\r\n    testGroupID: "+testGroupID
                             + "\r\n    testID: "+testID
                             + "\r\n    autoDeletePOSTS: "+bAutoDeletePOSTS
-                            + "\r\n    will use config file: "+f.getCanonicalPath());
+                            + (Tools.notEmpty(xmlReplayMaster)
+                                       ? ("\r\n    will use master file: "+f.getCanonicalPath()) 
+                                       : ("\r\n    will use config file: "+f.getCanonicalPath()) )
+                             );
             
-            runXmlReplayFile(xmlReplayBaseDir, configFilename, testGroupID, testID, createResultsMap(), createVariablesMap(), bAutoDeletePOSTS, bDumpResults);
+            Dump dump = getDumpConfig();
+            dump.payloads = Tools.isTrue(dumpResults);
+            if (Tools.notEmpty(xmlReplayMaster)){
+                if (Tools.notEmpty(configFilename)){
+                    System.out.println("WARN: configFilename: "+configFilename+" will not be used because master was specified.  Running master: "+xmlReplayMaster);
+                }
+                XmlReplay replay = new XmlReplay(xmlReplayBaseDir);
+                replay.setDump(dump);
+                replay.runMaster(xmlReplayMaster);
+            } else {
+                runXmlReplayFile(xmlReplayBaseDir, configFilename, testGroupID, testID, createResultsMap(), createVariablesMap(), bAutoDeletePOSTS, dump, "", null);
+            }
         } catch (ParseException exp) {
             // oops, something went wrong
             System.err.println("Cmd-line parsing failed.  Reason: " + exp.getMessage());

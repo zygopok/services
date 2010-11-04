@@ -37,7 +37,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import org.collectionspace.services.IntegrationTests.xmlreplay.XmlReplay.ServiceResult;
+import org.collectionspace.services.IntegrationTests.xmlreplay.ServiceResult;
 
 /**
  *   @author Laramie Crocker
@@ -54,7 +54,7 @@ public class XmlReplayTransport {
         getMethod.addRequestHeader("Accept", "multipart/mixed");
         getMethod.addRequestHeader("Accept", "application/xml");
         getMethod.setRequestHeader("Authorization", "Basic " + authForTest); //"dGVzdDp0ZXN0");
-        XmlReplay.ServiceResult pr = new ServiceResult();
+        ServiceResult pr = new ServiceResult();
 
         int statusCode1 = client.executeMethod(getMethod);
         pr.responseCode = statusCode1;
@@ -73,7 +73,7 @@ public class XmlReplayTransport {
     }
 
     public static ServiceResult doDELETE(String urlString, String authForTest, String testID, String fromTestID) throws Exception {
-        XmlReplay.ServiceResult pr = new XmlReplay.ServiceResult();
+        ServiceResult pr = new ServiceResult();
         pr.method = "DELETE";
         pr.fullURL = urlString;
         if (Tools.isEmpty(urlString)){
@@ -114,7 +114,7 @@ public class XmlReplayTransport {
     public static final String APPLICATION_XML = "application/xml";
 
     /** Use this overload for multipart messages. */
-    public static XmlReplay.ServiceResult doPOST_PUTFromXML_Multipart(List<String> filesList,
+    public static ServiceResult doPOST_PUTFromXML_Multipart(List<String> filesList,
                                                                       List<String> partsList,
                                                                       String protoHostPort,
                                                                       String uri,
@@ -149,7 +149,7 @@ public class XmlReplayTransport {
     }
 
     /** Use this overload for NON-multipart messages, that is, regular POSTs. */
-        public static XmlReplay.ServiceResult doPOST_PUTFromXML(String fileName,
+        public static ServiceResult doPOST_PUTFromXML(String fileName,
                                                                 String protoHostPort,
                                                                 String uri,
                                                                 String method,

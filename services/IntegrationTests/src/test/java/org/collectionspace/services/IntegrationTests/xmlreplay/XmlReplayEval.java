@@ -34,7 +34,7 @@ import java.util.Map;
  * $LastChangedDate:  $
  */
 public class XmlReplayEval {
-    public Map<String, XmlReplay.ServiceResult> serviceResultsMap;
+    public Map<String, ServiceResult> serviceResultsMap;
     public JexlEngine jexl;
     public JexlContext jc;
 
@@ -52,11 +52,11 @@ public class XmlReplayEval {
      * uri = eval(uri, serviceResultsMap, jexl, jc);  <br />
      * RESULT:    "/cspace-services/orgauthorities/43a2739c-4f40-49c8-a6d5/items/"
      */
-    public static String eval(String inputJexlExpression, Map<String, XmlReplay.ServiceResult> serviceResultsMap, JexlEngine jexl, JexlContext jc) {
+    public static String eval(String inputJexlExpression, Map<String, ServiceResult> serviceResultsMap, JexlEngine jexl, JexlContext jc) {
         //System.out.println("\r\n---- REPLACE.init-uri:        "+inputJexlExpression);
         String result;
         try {
-            for (XmlReplay.ServiceResult postResult : serviceResultsMap.values()) {
+            for (ServiceResult postResult : serviceResultsMap.values()) {
                 jc.set(postResult.testID, postResult);
                 //System.out.println("eval :: "+postResult.testID+"==>"+postResult);
             }

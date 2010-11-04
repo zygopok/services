@@ -40,47 +40,21 @@ import java.util.List;
 public class XmlReplayTest {
 
     private XmlReplay xmlreplay;
-    public static XmlReplay createXmlReplay() throws Exception {
+    public static XmlReplay createXmlReplay(String xmlReplayControlFile) throws Exception {
         String pwd = (new File(".")).getCanonicalPath();
         XmlReplay replay = new XmlReplay(pwd+"/src/test/resources/test-data/xmlreplay");
-        replay.setConfigFileName("security.xml");
+        if (Tools.notEmpty(xmlReplayControlFile)){
+            replay.setConfigFileName(xmlReplayControlFile);
+        }
         return replay;
     }
 
-    @BeforeClass
-    public void initXmlReplay() throws Exception {
-        xmlreplay = createXmlReplay();
-        System.out.println("IN initXmlReplay "+xmlreplay);
-    }
-
-    @AfterClass
-    public void finalizeXmlReplay() throws Exception {
-        xmlreplay.autoDelete();
-        System.out.println("IN finalizeXmlReplay");
-    }
 
     @Test
-    public void runTest() throws Exception {
-        //xmlreplay.runTest("security", "");
-        System.out.println("IN runTest");
-    }
-
-    //For some reason, when methods are in groups, @BeforeClass doesn't fire.
-    @Test
-     public void runGroup() throws Exception {
-        System.out.println("IN runGroup");
-         if (xmlreplay==null){
-             System.out.println("ERROR: XmlReplay not initialized in test, probably because @BeforeClass did not run.");
-             return;
-         }
-    //    XmlReplay xmlreplay2 = createXmlReplay();
-        //logger.debug("\r\n===========\r\n XmlReplay.runGroup("+xmlReplayGroup+") :: "+xmlreplay2+"\r\n");
-        List<XmlReplay.ServiceResult> results = xmlreplay.runTestGroup("security");
-        for (XmlReplay.ServiceResult sr : results){
-            if (Tools.notEmpty(sr.error) || (false==sr.gotExpectedResult())){
-                Assert.fail("XmlReplay got unexpected response.  ServiceResult: "+sr);
-            }
-        }
+    public void runMaster() throws Exception {
+        System.out.println("\r\n\r\n=============== IN runMaster =================\r\n");
+        XmlReplay replay = createXmlReplay("");
+        replay.runMaster(XmlReplay.DEFAULT_MASTER_CONFIG);
     }
 
 }

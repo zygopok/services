@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xmlReplay>
-    <protoHostPort>http://localhost:8280</protoHostPort>
     <!--
     How to use this file.
     ======================
@@ -71,8 +70,6 @@
                 <filename>collectionobject/repfield_whitesp2.xml</filename>
             </part>
         </test>
-
-        
     </testGroup>
 
     <testGroup ID="2parts" autoDeletePOSTS="true">
@@ -96,15 +93,6 @@
             <fromTestID>nh</fromTestID>
         </test>
     </testGroup>
-
-    <test ID="1002">
-        <method>POST</method>
-        <uri>/cspace-services/collectionobjects/</uri>
-        <part>
-            <label>collectionobjects_common</label>
-            <filename>collectionobject/repfield_whitesp2.xml</filename>
-        </part>
-    </test>
 
     <testGroup ID="collectionobjects" autoDeletePOSTS="true">
         <test ID="1001">
@@ -262,40 +250,6 @@
 
 
     
-    <testGroup ID="organization" autoDeletePOSTS="true">
-        <test ID="OrgAuth1">
-            <method>POST</method>
-            <uri>/cspace-services/orgauthorities/</uri>
-            <part>
-                <label>orgauthorities_common</label>
-                <filename>organization/orgauthorities_common.xml</filename>
-            </part>
-        </test>
-        <test ID="Org1">
-            <method>POST</method>
-            <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}/items/</uri>
-            <part>
-                <label>organizations_common</label>
-                <filename>organization/organizations_common.xml</filename>
-            </part>
-        </test>
-        <test>
-            <method>GET</method>
-            <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}/items/${Org1.CSID}</uri>
-        </test>
-        <test>
-            <method>GET</method>
-            <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}</uri>
-        </test>
-        <test ID="oneOrg">
-            <method>LIST</method>
-            <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}</uri>
-        </test>
-        <test ID="organizationList2">
-            <method>LIST</method>
-            <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}/items/</uri>
-        </test>
-    </testGroup>
 
 
 </xmlReplay>

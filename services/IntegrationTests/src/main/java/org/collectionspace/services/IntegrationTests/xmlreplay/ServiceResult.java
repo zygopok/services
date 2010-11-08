@@ -70,7 +70,9 @@ public class ServiceResult {
         }
         return codeInSuccessRange(responseCode);
     }
-    public static final String[] DUMP_OPTIONS = {"minimal", "detailed", "full"};
+    //public static final String[] DUMP_OPTIONS = {"minimal", "detailed", "full"};
+    public static enum DUMP_OPTIONS {minimal, detailed, full};
+
     public String toString(){
         return detail(true);
 
@@ -107,14 +109,16 @@ public class ServiceResult {
                 + ( Tools.notEmpty(error) ? "; ERROR:"+error : "" )
                 +"}";
     }
-    public String dump(String which){
-        if (which.equalsIgnoreCase(DUMP_OPTIONS[0])){
-            return minimal();
-        } else if (which.equalsIgnoreCase(DUMP_OPTIONS[1])){
-            return detail(false);
-        } else if (which.equalsIgnoreCase(DUMP_OPTIONS[2])){
-            return detail(true);
+    public String dump(ServiceResult.DUMP_OPTIONS opt){
+        switch (opt){
+            case minimal:
+                return minimal();
+            case detailed:
+                return detail(false);
+            case full:
+                return detail(true);
+            default:
+                return toString();
         }
-        else return toString();
     }
 }

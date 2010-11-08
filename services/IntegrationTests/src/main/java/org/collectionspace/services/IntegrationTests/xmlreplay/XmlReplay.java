@@ -206,8 +206,8 @@ public class XmlReplay {
 
     public static class Dump {
         public boolean payloads = false;
-        public static final String[] dumpServiceResultOptions = ServiceResult.DUMP_OPTIONS;
-        public String dumpServiceResult = dumpServiceResultOptions[0];
+        //public static final ServiceResult.DUMP_OPTIONS dumpServiceResultOptions = ServiceResult.DUMP_OPTIONS;
+        public ServiceResult.DUMP_OPTIONS dumpServiceResult = ServiceResult.DUMP_OPTIONS.minimal;
         public String toString(){
             return "payloads: "+payloads+" dumpServiceResult: "+dumpServiceResult;
         }
@@ -222,9 +222,9 @@ public class XmlReplay {
         Node dumpNode = document.selectSingleNode("//dump");
         if (dumpNode != null){
             dump.payloads = Tools.isTrue(dumpNode.valueOf("@payloads"));
-            String dumpServiceResult = dumpNode.valueOf("@dumpServiceResult");
-            if (Tools.notEmpty(dumpServiceResult)){
-                dump.dumpServiceResult = dumpServiceResult;
+            String dumpServiceResultStr = dumpNode.valueOf("@dumpServiceResult");
+            if (Tools.notEmpty(dumpServiceResultStr)){
+                dump.dumpServiceResult = ServiceResult.DUMP_OPTIONS.valueOf(dumpServiceResultStr);
             }
         }
         return dump;
@@ -497,7 +497,7 @@ public class XmlReplay {
                 if (Tools.isEmpty(serviceResult.testGroupID)) serviceResult.testGroupID = testGroupID;
 
                 String serviceResultRow = serviceResult.dump(dump.dumpServiceResult);
-                String leader = (dump.dumpServiceResult.equalsIgnoreCase(ServiceResult.DUMP_OPTIONS[1])) ? "XmlReplay:"+testIDLabel+": ": "";
+                String leader = (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.detailed) ? "XmlReplay:"+testIDLabel+": ": "";
                 System.out.println(leader+serviceResultRow+"\r\n");
                 if (dump.payloads) System.out.println(serviceResult.result);
             }

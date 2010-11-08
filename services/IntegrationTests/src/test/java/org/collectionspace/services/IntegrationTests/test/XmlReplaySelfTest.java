@@ -57,7 +57,7 @@ public class XmlReplaySelfTest extends XmlReplayTest {
         //Dump determines how much goes to log, and how verbose.
         XmlReplay.Dump dump = XmlReplay.getDumpConfig(); //static factory call.
         dump.payloads = false;
-        dump.dumpServiceResult = XmlReplay.Dump.dumpServiceResultOptions[0];
+        dump.dumpServiceResult = ServiceResult.DUMP_OPTIONS.minimal;
         replay.setDump(dump);
 
         //use this if you must look it up from some other place.

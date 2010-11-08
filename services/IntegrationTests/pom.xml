@@ -113,7 +113,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>commons-jexl</groupId>
+            <groupId>org.apache.commons</groupId>
             <artifactId>commons-jexl</artifactId>
             <version>2.0.1</version>
         </dependency>

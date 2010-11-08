@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/** Subclass this test to programmatically control XmlReplay from a surefire test.  See example in IntegrationTests :: XmlReplaySelfTest
  * User: laramie
  * $LastChangedRevision:  $
  * $LastChangedDate:  $
@@ -129,11 +129,12 @@ public class XmlReplayTest {
                     summary.oks++;
                     buff.append(ROWSTART+serviceResult.minimal()+ROWEND);
                 } else {
-                    buff.append(ROWSTARTRED+serviceResult.minimal()+ROWEND);
+                    buff.append(ROWSTARTRED+serviceResult.minimal()+ROWENDRED);
                 }
             }
 
         }
+        buff.append(TBLEND);
         summary.table = buff.toString();
         return summary;
     }
@@ -150,9 +151,10 @@ public class XmlReplayTest {
                 summary.oks++;
                 buff.append(ROWSTART+serviceResult.minimal()+ROWEND);
             } else {
-                buff.append(ROWSTARTRED+serviceResult.minimal()+ROWEND);
+                buff.append(ROWSTARTRED+serviceResult.minimal()+ROWENDRED);
             }
         }
+        buff.append(TBLEND);
         summary.table = buff.toString();
         return summary;
     }
@@ -167,8 +169,9 @@ public class XmlReplayTest {
             summary.oks = 1;
             buff.append(ROWSTART+serviceResult.minimal()+ROWEND);
         } else {
-            buff.append(ROWSTARTRED+serviceResult.minimal()+ROWEND);
+            buff.append(ROWSTARTRED+serviceResult.minimal()+ROWENDRED);
         }
+        buff.append(TBLEND);
         summary.table = buff.toString();
         return summary;
     }

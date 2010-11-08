@@ -3,7 +3,6 @@ package org.collectionspace.services.client.test;
 import org.collectionspace.services.IntegrationTests.xmlreplay.ServiceResult;
 import org.collectionspace.services.IntegrationTests.xmlreplay.XmlReplay;
 import org.collectionspace.services.IntegrationTests.xmlreplay.XmlReplayTest;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -17,7 +16,7 @@ public class DimensionXmlReplayTest extends XmlReplayTest {
 
     @Test
     public void runMaster() throws Exception {
-        XmlReplay replay = createXmlReplayFromIntegrationTestsModule("../../");
+        XmlReplay replay = createXmlReplayUsingIntegrationTestsModule("../../");
         List<List<ServiceResult>> list = replay.runMaster("dimension-master.xml");
         logTestForGroup(list, "runMaster");
     }
@@ -28,8 +27,8 @@ public class DimensionXmlReplayTest extends XmlReplayTest {
         replay.readOptionsFromMasterConfigFile("dimension-master.xml");
         replay.setControlFileName("dimension.xml");
 
-        List<ServiceResult> list = replay.runTest("dimensionTestGroup", "dimension1");
-        logTest(list, "runOneTest");
+        ServiceResult res = replay.runTest("dimensionTestGroup", "dimension1");
+        logTest(res, "runOneTest");
     }
 
 }

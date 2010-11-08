@@ -115,7 +115,7 @@ public class XmlReplay {
         for (Node runNode : runNodes) {
             controlFile = runNode.valueOf("@controlFile");
             testGroup = runNode.valueOf("@testGroup");
-            test = runNode.valueOf("@test");
+            test = runNode.valueOf("@test"); //may be empty
 
             //Create a new instance and clone only config values, not any results maps.
             XmlReplay replay = new XmlReplay(basedir);
@@ -126,15 +126,15 @@ public class XmlReplay {
             replay.setDefaultAuthsMap(getDefaultAuthsMap());
 
             //Now run *that* instance.
-            List<ServiceResult> results = replay.runTest(testGroup, test);
+            List<ServiceResult> results = replay.runTests(testGroup, test);
             list.add(results);
         }
         return list;
     }
 
-    /** Use this if you wish to specify just ONE test to run within a testGroup, otherwise call runTestGroup(). */
-    public List<ServiceResult>  runTest(String testGroupID, String testID) throws Exception {
-        return runXmlReplayFile(this.basedir,
+    /** Use this if you wish to named tests within a testGroup, otherwise call runTestGroup(). */
+    public List<ServiceResult>  runTests(String testGroupID, String testID) throws Exception {
+        List<ServiceResult> result = runXmlReplayFile(this.basedir,
                                 this.controlFileName,
                                 testGroupID,
                                 testID,
@@ -143,17 +143,35 @@ public class XmlReplay {
                                 dump,
                                 this.protoHostPort,
                                 this.defaultAuthsMap);
+        return result;
+    }
+
+    /** Use this if you wish to specify just ONE test to run within a testGroup, otherwise call runTestGroup(). */
+    public ServiceResult  runTest(String testGroupID, String testID) throws Exception {
+        List<ServiceResult> result = runXmlReplayFile(this.basedir,
+                                this.controlFileName,
+                                testGroupID,
+                                testID,
+                                this.serviceResultsMap,
+                                this.autoDeletePOSTS,
+                                dump,
+                                this.protoHostPort,
+                                this.defaultAuthsMap);
+        if (result.size()>1){
+            throw new IndexOutOfBoundsException("Multiple ("+result.size()+") tests with ID='"+testID+"' were found within test group '"+testGroupID+"', but there should only be one test per ID attribute.");
+        }
+        return result.get(0);
     }
 
     /** Use this if you wish to run all tests within a testGroup.*/
     public List<ServiceResult> runTestGroup(String testGroupID) throws Exception {
         //NOTE: calling runTest with empty testID runs all tests in a test group, but don't expose this fact.
         // Expose this method (runTestGroup) instead.
-        return runTest(testGroupID, "");
+        return runTests(testGroupID, "");
     }
 
-    public void autoDelete(){
-        autoDelete(this.serviceResultsMap);
+    public List<ServiceResult>  autoDelete(String logName){
+        return autoDelete(this.serviceResultsMap, logName);
     }
 
     /** Use this method to clean up resources created on the server that returned CSIDs, if you have
@@ -161,16 +179,22 @@ public class XmlReplay {
      * @param serviceResultsMap a Map of ServiceResult objects, which will contain ServiceResult.deleteURL.
      * @return a List<String> of debug info about which URLs could not be deleted.
      */
-    public static List<String> autoDelete(Map<String, ServiceResult> serviceResultsMap){
-        List<String> results = new ArrayList<String>();
+    public static List<ServiceResult> autoDelete(Map<String, ServiceResult> serviceResultsMap, String logName){
+        List<ServiceResult> results = new ArrayList<ServiceResult>();
         for (ServiceResult pr : serviceResultsMap.values()){
             try {
-                XmlReplayTransport.doDELETE(pr.deleteURL, pr.auth, pr.testID, "[autodelete]");
+                ServiceResult deleteResult = XmlReplayTransport.doDELETE(pr.deleteURL, pr.auth, pr.testID, "[autodelete:"+logName+"]");
+                results.add(deleteResult);
             } catch (Throwable t){
                 String s = (pr!=null) ? "ERROR while cleaning up ServiceResult map: "+pr+" for "+pr.deleteURL+" :: "+t
                                       : "ERROR while cleaning up ServiceResult map (null ServiceResult): "+t;
                 System.err.println(s);
-                results.add(s);
+                ServiceResult errorResult = new ServiceResult();
+                errorResult.fullURL = pr.fullURL;
+                errorResult.testGroupID = pr.testGroupID;
+                errorResult.fromTestID = pr.fromTestID;
+                errorResult.error = s;
+                results.add(errorResult);
             }
         }
         return results;
@@ -365,6 +389,7 @@ public class XmlReplay {
                           +"\r\n   testGroup: "+testGroupID
                           + (Tools.notEmpty(oneTestID) ? "\r\n   oneTestID: "+oneTestID : "")
                           +"\r\n   AuthsMap: "+authsMapINFO
+                          +"\r\n   param_autoDeletePOSTS: "+param_autoDeletePOSTS
                           +"\r\n   Dump info: "+dump
                           +"\r\n");
 
@@ -442,9 +467,9 @@ public class XmlReplay {
                         uri = fromTestID(uri, testNode, serviceResultsMap);
                     }
                     if (parts.bDoingSinglePartPayload){
-                        serviceResult = XmlReplayTransport.doPOST_PUTFromXML(parts.singlePartPayloadFilename, protoHostPort, uri, "POST", XmlReplayTransport.APPLICATION_XML, evalStruct, authForTest);
+                        serviceResult = XmlReplayTransport.doPOST_PUTFromXML(parts.singlePartPayloadFilename, protoHostPort, uri, "POST", XmlReplayTransport.APPLICATION_XML, evalStruct, authForTest, testIDLabel);
                     } else {
-                        serviceResult = XmlReplayTransport.doPOST_PUTFromXML_Multipart(parts.filesList, parts.partsList, protoHostPort, uri, "POST", evalStruct, authForTest);
+                        serviceResult = XmlReplayTransport.doPOST_PUTFromXML_Multipart(parts.filesList, parts.partsList, protoHostPort, uri, "POST", evalStruct, authForTest, testIDLabel);
                     }
                     results.add(serviceResult);
                     if (isPOST){
@@ -475,12 +500,12 @@ public class XmlReplay {
                     }
                 } else if (method.equalsIgnoreCase("GET")){
                     fullURL = fromTestID(fullURL, testNode, serviceResultsMap);
-                    serviceResult = XmlReplayTransport.doGET(fullURL, authForTest);
+                    serviceResult = XmlReplayTransport.doGET(fullURL, authForTest, testIDLabel);
                     results.add(serviceResult);
                 } else if (method.equalsIgnoreCase("LIST")){
                     fullURL = fixupFullURL(fullURL, protoHostPort, uri);
                     String listQueryParams = ""; //TODO: empty for now, later may pick up from XML control file.
-                    serviceResult = XmlReplayTransport.doLIST(fullURL, listQueryParams, authForTest);
+                    serviceResult = XmlReplayTransport.doLIST(fullURL, listQueryParams, authForTest, testIDLabel);
                     results.add(serviceResult);
                 } else {
                     throw new Exception("HTTP method not supported by XmlReplay: "+method);
@@ -502,7 +527,7 @@ public class XmlReplay {
                 if (dump.payloads) System.out.println(serviceResult.result);
             }
             if (Tools.isTrue(autoDeletePOSTS)&&param_autoDeletePOSTS){
-                autoDelete(serviceResultsMap);
+                autoDelete(serviceResultsMap, "default");
             }
         }
         return results;

@@ -1,3 +1,26 @@
+/**
+ * This document is a part of the source code and related artifacts
+ * for CollectionSpace, an open source collections management system
+ * for museums and related institutions:
+ *
+ * http://www.collectionspace.org
+ * http://wiki.collectionspace.org
+ *
+ * Copyright (c) 2009 Regents of the University of California
+ *
+ * Licensed under the Educational Community License (ECL), Version 2.0.
+ * You may not use this file except in compliance with this License.
+ *
+ * You may obtain a copy of the ECL 2.0 License at
+ * https://source.collectionspace.org/collection-space/LICENSE.txt
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package org.collectionspace.services.IntegrationTests.test;
 
 import org.collectionspace.services.IntegrationTests.xmlreplay.ServiceResult;
@@ -5,39 +28,100 @@ import org.collectionspace.services.IntegrationTests.xmlreplay.XmlReplay;
 import org.collectionspace.services.IntegrationTests.xmlreplay.XmlReplayTest;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: laramie
- * $LastChangedRevision:  $
- * $LastChangedDate:  $
+/**  The test cases in here also document the ways that XmlReplay was designed to be used programmatically.
+ *   The most automated way to use XmlReplay is demonstrated in runMaster().  You just create a master file and a control
+ *   file in the IntegrationTests xml replay repository, which is in services/IntegrationTests + XmlReplayTest.XMLREPLAY_REL_DIR_TO_MODULE.
+ *
+ *   If you choose to run from a module, you'll need to add a dependency to the IntegrationTests module:
+ *   e.g.
+ *    &lt;project ...>
+ *    &lt;dependencies>
+ *      &lt;dependency>
+            &lt;groupId>org.collectionspace.services&lt;/groupId>
+            &lt;artifactId>org.collectionspace.services.IntegrationTests&lt;/artifactId>
+            &lt;version>${project.version}&lt;/version>
+        &lt;/dependency>
+ *
+ *   User: laramie
+ *   $LastChangedRevision:  $
+ *   $LastChangedDate:  $
  */
 public class XmlReplaySelfTest extends XmlReplayTest {
 
+    public static XmlReplay createXmlReplay() throws Exception {
+        return XmlReplayTest.createXmlReplayUsingIntegrationTestsModule("..");
+        //NOTE: this self-test lives in services/IntegrationTests, so relToServicesRoot is ".."
+        //      but if you were running from, say, services/dimension/client, then relToServicesRoot would be "../.."
+        //      so you would have to call XmlReplayTest.createXmlReplayUsingIntegrationTestsModule("../..")
+        //      which is done for you if you just call XmlReplayTest.createXmlReplay().
+    }
 
     @Test
     public void runMaster() throws Exception {
-        XmlReplay replay = createXmlReplayForModule();
+        XmlReplay replay = createXmlReplay();
         List<List<ServiceResult>> list = replay.runMaster("xml-replay-master-self-test.xml");
         logTestForGroup(list, "runMaster");
     }
 
     @Test
-    public void runOneTest() throws Exception {
-        XmlReplay replay = createXmlReplayForModule();
-        replay.readOptionsFromMasterConfigFile("xml-replay-master-self-test.xml");
+    public void runTestGroup() throws Exception {
+        XmlReplay replay = createXmlReplay();
+        replay.readOptionsFromMasterConfigFile("xml-replay-master-self-test.xml"); //or use: XmlReplay.DEFAULT_MASTER_CONTROL as master filename;
         replay.setControlFileName("xml-replay-self-test.xml");
-
-        List<ServiceResult> list = replay.runTest("selftestGroup", "OrgAuth1");
-        logTest(list, "runOneTest");
+        List<ServiceResult> list = replay.runTestGroup("selftestGroup");
+        logTest(list, "runTestGroup");
     }
 
     @Test
+    public void runOneTest() throws Exception {
+        XmlReplay replay = createXmlReplay();
+        replay.readOptionsFromMasterConfigFile("xml-replay-master-self-test.xml");
+        replay.setControlFileName("xml-replay-self-test.xml");
+
+        ServiceResult res = replay.runTest("selftestGroup", "OrgAuth1");
+        logTest(res, "runOneTest");
+    }
+
+
+    @Test
+    public void runMultipleTestsManualCleanup() throws Exception {
+        XmlReplay replay = createXmlReplay();
+        replay.readOptionsFromMasterConfigFile("xml-replay-master-self-test.xml");
+        replay.setControlFileName("xml-replay-self-test.xml");
+        replay.setAutoDeletePOSTS(false);  //defaults to true, so turn it off to to it ourselves.
+
+        List<ServiceResult> testResultsList = new ArrayList<ServiceResult>();
+
+        ServiceResult res1 = replay.runTest("selftestGroup", "OrgAuth1");
+        testResultsList.add(res1);
+
+        ServiceResult res2 = replay.runTest("selftestGroup", "Org1");
+        testResultsList.add(res2);
+
+        ServiceResult res3 = replay.runTest("selftestGroup", "getOrg1");
+        testResultsList.add(res3);
+
+        //Now, clean up.  You may skip this if your tests do all the DELETEs.
+        List<ServiceResult> deleteList = replay.autoDelete("runMultipleTestsManualCleanup");
+
+        logTest(testResultsList, "runTwoTestsManualCleanup.tests");
+        logTest(deleteList, "runTwoTestsManualCleanup.cleanups");
+
+    }
+
+
+    @Test
     public void runTestGroup_AllOptions() throws Exception {
-        //Create an XmlReplay relative to this module, which should then have a directory of payloads and config files
-        // as specified in XmlReplayTest.XMLREPLAY_REL_DIR_TO_MODULE
-        XmlReplay replay = createXmlReplayForModule();
+        XmlReplay replay = createXmlReplay();  //Use the central repository.
+        //You can also use your own xml replay repository in your module, like so:
+        //   XmlReplay replay = XmlReplayTest.createXmlReplayForModule(); if you are in your module
+        //You can also manually specify to use the central repository:
+        //   XmlReplay replay = XmlReplayTest.createXmlReplayUsingIntegrationTestsModule("..");  if you are in a module such as dimension
+        //   XmlReplay replay = XmlReplayTest.createXmlReplayUsingIntegrationTestsModule("../.."); if you are in a module such as dimension/client
 
         //You may read Dump, Auths, and protoHostPort from the master file:
         replay.readOptionsFromMasterConfigFile("xml-replay-master-self-test.xml"); //or use: XmlReplay.DEFAULT_MASTER_CONTROL as master filename;
@@ -77,7 +161,7 @@ public class XmlReplaySelfTest extends XmlReplayTest {
         // You could also run just one test using these options by calling replay.runTest as shown above in XmlReplayTest.runOneTest()
 
         //Now, since we set setAutoDeletePOSTS(false) above, you can clean up manually:
-        replay.autoDelete(); //deletes everything in serviceResultsMap, which it hangs onto.
+        replay.autoDelete("runTestGroup_AllOptions"); //deletes everything in serviceResultsMap, which it hangs onto.
 
         logTest(list, "runTestGroup_AllOptions");
     }

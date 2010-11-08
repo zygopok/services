@@ -17,19 +17,19 @@
                 <filename>organization/organizations_common.xml</filename>
             </part>
         </test>
-        <test>
+        <test ID="getOrg1">
             <method>GET</method>
             <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}/items/${Org1.CSID}</uri>
         </test>
-        <test>
+        <test ID="getItems">
             <method>GET</method>
             <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}</uri>
         </test>
-        <test ID="oneOrg">
+        <test ID="oneOrgLIST">
             <method>LIST</method>
             <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}</uri>
         </test>
-        <test ID="organizationList2">
+        <test ID="organizationLIST2">
             <method>LIST</method>
             <uri>/cspace-services/orgauthorities/${OrgAuth1.CSID}/items/</uri>
         </test>

@@ -38,6 +38,11 @@ public class XmlReplayTest {
 
     public static final String XMLREPLAY_REL_DIR_TO_MODULE = "/src/test/resources/test-data/xmlreplay";
 
+    /** To use this method, you should have a test repository of xml files in the path
+     *  defined by XMLREPLAY_REL_DIR_TO_MODULE, relative to your pom.xml file, but normally
+     *  you would use the central repository of tests, which live in services/IntegrationTests,
+     *  and which you can use by calling createXmlReplay() which calls createXmlReplayUsingIntegrationTestsModule() for you.
+     */
     public static XmlReplay createXmlReplayForModule() throws Exception {
         String pwd = (new File(".")).getCanonicalPath();
         System.out.println("createXmlReplayForModule.pwd: "+pwd);
@@ -46,13 +51,33 @@ public class XmlReplayTest {
         return replay;
     }
 
-    public static XmlReplay createXmlReplayFromIntegrationTestsModule(String relToServicesRoot) throws Exception {
+    /** Use this method if your test xml files are stored in the central repository,
+     *   which is "services/IntegrationTests" + XMLREPLAY_REL_DIR_TO_MODULE
+     */
+    public static XmlReplay createXmlReplay() throws Exception {
+        return createXmlReplayUsingIntegrationTestsModule("../..");
+    }
+
+    /**
+     * @param relToServicesRoot is a Unix-like path from the calling module to the services root,
+     *        so if  if you are in services/dimension/client/
+     *        then relToServicesRoot is "../.." which is how most of the client tests are set up, or if you
+     *        are setting up your test repository relative to the main service, e.g. you are in
+     *        services/dimension/, then relToServicesRoot is ".."
+     */
+    public static XmlReplay createXmlReplayUsingIntegrationTestsModule(String relToServicesRoot) throws Exception {
         String thisDir = Tools.glue(relToServicesRoot, "/", "IntegrationTests");
         String pwd = (new File(thisDir)).getCanonicalPath();
-        System.out.println("createXmlReplayFromIntegrationTestsModule.pwd: "+pwd);
+        System.out.println("createXmlReplayUsingIntegrationTestsModule.pwd: "+pwd);
         XmlReplay replay = new XmlReplay(pwd+XMLREPLAY_REL_DIR_TO_MODULE);
         System.out.println("XmlReplay: "+replay);
         return replay;
+    }
+
+    public static void logTest(ServiceResult sresult, String testname){
+        ResultSummary summary = resultSummary(sresult);
+        org.testng.Reporter.log(summary.table);
+        Assert.assertEquals(summary.oks, summary.total, "Expected all "+summary.total+ " XmlReplay tests to pass.  See Output from test '"+testname+"'.");
     }
 
     public static void logTest(List<ServiceResult> list, String testname){
@@ -60,7 +85,7 @@ public class XmlReplayTest {
         org.testng.Reporter.log(summary.table);
         Assert.assertEquals(summary.oks, summary.total, "Expected all "+summary.total+ " XmlReplay tests to pass.  See Output from test '"+testname+"'.");
     }
-    
+
     public static void logTestForGroup(List<List<ServiceResult>> list, String testname){
         ResultSummary summary = resultSummaryForGroup(list);
         org.testng.Reporter.log(summary.table);
@@ -127,6 +152,22 @@ public class XmlReplayTest {
             } else {
                 buff.append(ROWSTARTRED+serviceResult.minimal()+ROWEND);
             }
+        }
+        summary.table = buff.toString();
+        return summary;
+    }
+
+    public static ResultSummary resultSummary(ServiceResult serviceResult){
+        ResultSummary summary = new ResultSummary();
+        summary.oks = 0;
+        summary.total = 1;
+        StringBuffer buff = new StringBuffer();
+        buff.append(TBLSTART);
+        if (serviceResult.gotExpectedResult()){
+            summary.oks = 1;
+            buff.append(ROWSTART+serviceResult.minimal()+ROWEND);
+        } else {
+            buff.append(ROWSTARTRED+serviceResult.minimal()+ROWEND);
         }
         summary.table = buff.toString();
         return summary;

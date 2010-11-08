@@ -48,12 +48,13 @@ public class XmlReplayTransport {
         private static String DD = "--";
         private static String CRLF = "\r\n";
 
-    public static ServiceResult doGET(String urlString, String authForTest) throws Exception {
+    public static ServiceResult doGET(String urlString, String authForTest, String fromTestID) throws Exception {
         HttpClient client = new HttpClient();
         GetMethod getMethod = new GetMethod(urlString);
         getMethod.addRequestHeader("Accept", "multipart/mixed");
         getMethod.addRequestHeader("Accept", "application/xml");
         getMethod.setRequestHeader("Authorization", "Basic " + authForTest); //"dGVzdDp0ZXN0");
+        getMethod.setRequestHeader("X-XmlReplay-fromTestID", fromTestID);
         ServiceResult pr = new ServiceResult();
 
         int statusCode1 = client.executeMethod(getMethod);
@@ -85,6 +86,7 @@ public class XmlReplayTransport {
         deleteMethod.setRequestHeader("Accept", "multipart/mixed");
         deleteMethod.addRequestHeader("Accept", "application/xml");
         deleteMethod.setRequestHeader("Authorization", "Basic " + authForTest);
+        deleteMethod.setRequestHeader("X-XmlReplay-fromTestID", fromTestID);
         int statusCode1 = 0;
         String res = "";
         try {
@@ -102,12 +104,12 @@ public class XmlReplayTransport {
         return pr;
     }
 
-    public static ServiceResult doLIST(String urlString, String listQueryParams, String authForTest) throws Exception {
+    public static ServiceResult doLIST(String urlString, String listQueryParams, String authForTest, String fromTestID) throws Exception {
         //String u = Tools.glue(urlString, "/", "items/");
         if (Tools.notEmpty(listQueryParams)){
             urlString = Tools.glue(urlString, "?", listQueryParams);
         }
-        return doGET(urlString, authForTest);
+        return doGET(urlString, authForTest, fromTestID);
     }
 
     public static final String MULTIPART_MIXED = "multipart/mixed";
@@ -120,7 +122,8 @@ public class XmlReplayTransport {
                                                                       String uri,
                                                                       String method,
                                                                       XmlReplayEval evalStruct,
-                                                                      String authForTest)
+                                                                      String authForTest,
+                                                                      String fromTestID)
                                                                       throws Exception {
         if (  filesList==null||filesList.size()==0
             ||partsList==null||partsList.size()==0
@@ -145,7 +148,7 @@ public class XmlReplayTransport {
         }
         content = content + DD;
         String urlString = protoHostPort+uri;
-        return doPOST_PUT(urlString, content, BOUNDARY, method, MULTIPART_MIXED, authForTest); //method is POST or PUT.
+        return doPOST_PUT(urlString, content, BOUNDARY, method, MULTIPART_MIXED, authForTest, fromTestID); //method is POST or PUT.
     }
 
     /** Use this overload for NON-multipart messages, that is, regular POSTs. */
@@ -155,17 +158,19 @@ public class XmlReplayTransport {
                                                                 String method,
                                                                 String contentType,
                                                                 XmlReplayEval evalStruct,
-                                                                String authForTest)
+                                                                String authForTest,
+                                                                String fromTestID)
     throws Exception {
         byte[] b = FileUtils.readFileToByteArray(new File(fileName));
         String xmlString = new String(b);
         xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, evalStruct.jexl, evalStruct.jc);
         String urlString = protoHostPort+uri;
-        return doPOST_PUT(urlString, xmlString, BOUNDARY, method, contentType, authForTest); //method is POST or PUT.
+        return doPOST_PUT(urlString, xmlString, BOUNDARY, method, contentType, authForTest, fromTestID); //method is POST or PUT.
     }
 
 
-    public static ServiceResult doPOST_PUT(String urlString, String content, String boundary, String method, String contentType, String authForTest) throws Exception {
+    public static ServiceResult doPOST_PUT(String urlString, String content, String boundary, String method, String contentType,
+                                           String authForTest, String fromTestID) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection conn;
         conn = (HttpURLConnection) url.openConnection();
@@ -179,6 +184,7 @@ public class XmlReplayTransport {
         }
         conn.setRequestProperty("Authorization", "Basic " + authForTest);  //TODO: remove test user : hard-coded as "dGVzdDp0ZXN0"
         conn.setRequestProperty("Connection", "close");
+        conn.setRequestProperty("X-XmlReplay-fromTestID", fromTestID);
         conn.setDoOutput(true);
         conn.setDoInput(true);
         conn.setRequestMethod(method); // "POST" or "PUT"

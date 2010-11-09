@@ -28,6 +28,7 @@ import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
 
+import java.io.File;
 import  java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -85,6 +86,39 @@ public class Tools {
         Matcher matcher = pattern.matcher(source);
         String output = matcher.replaceAll(replace);
         return output;
+    }
+
+    static boolean m_fileSystemIsDOS = "\\".equals(File.separator);
+    static boolean m_fileSystemIsMac = ":".equals(File.separator);
+
+    public static boolean fileSystemIsDOS(){return m_fileSystemIsDOS;}
+    public static boolean fileSystemIsMac(){return m_fileSystemIsMac;}
+
+    public static String fixFilename(String filename){
+        if ( m_fileSystemIsDOS ) {
+            return filename.replace('/', '\\');
+        }
+        if ( m_fileSystemIsMac ) {
+            String t = filename.replace('/', ':');
+            t = t.replace('\\', ':');
+            return t;
+        }
+        return filename.replace('\\','/');
+    }
+
+    public static String join(String dir, String file){
+        if ( dir.length() == 0 ) {
+            return file;
+        }
+        dir = Tools.fixFilename(dir);
+        file = Tools.fixFilename(file);
+        if ( ! dir.endsWith(File.separator) ) {
+            dir += File.separator;
+        }
+        if ( file.startsWith(File.separator) ) {
+            file = file.substring(1);
+        }
+        return dir + file;
     }
 
 

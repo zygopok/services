@@ -88,14 +88,19 @@ public class XmlReplay {
 
     // ============== METHODS ===========================================================
 
-    /** specify the master config file, relative to getBaseDir(), but ignore any tests or testGroups in the master.
-     *  @return a Document object, which you don't need to use: all options will be stored in XmlReplay instance.
-     */
-    public Document readOptionsFromMasterConfigFile(String masterFilename) throws FileNotFoundException {
+    public Document openMasterConfigFile(String masterFilename) throws FileNotFoundException {
         Document document = getDocument(Tools.glue(basedir, "/", masterFilename)); //will check full path first, then checks relative to PWD.
         if (document == null){
             throw new FileNotFoundException("XmlReplay master control file ("+masterFilename+") not found in basedir: "+basedir+". Exiting test.");
         }
+        return document;
+    }
+
+    /** specify the master config file, relative to getBaseDir(), but ignore any tests or testGroups in the master.
+     *  @return a Document object, which you don't need to use: all options will be stored in XmlReplay instance.
+     */
+    public Document readOptionsFromMasterConfigFile(String masterFilename) throws FileNotFoundException {
+        Document document = openMasterConfigFile(masterFilename);
         protoHostPort = document.selectSingleNode("/xmlReplayMaster/protoHostPort").getText().trim();
         AuthsMap authsMap = readAuths(document);
         setDefaultAuthsMap(authsMap);
@@ -104,11 +109,20 @@ public class XmlReplay {
         return document;
     }
 
+    public List<List<ServiceResult>> runMaster(String masterFilename) throws Exception {
+        return runMaster(masterFilename, true);
+    }
+
     /** Creates new instances of XmlReplay, one for each controlFile specified in the master,
      *  and setting defaults from this instance, but not sharing ServiceResult objects or maps. */
-    public List<List<ServiceResult>> runMaster(String masterFilename) throws Exception {
+    public List<List<ServiceResult>> runMaster(String masterFilename, boolean readOptionsFromMaster) throws Exception {
         List<List<ServiceResult>> list = new ArrayList<List<ServiceResult>>();
-        Document document = readOptionsFromMasterConfigFile(masterFilename);
+        Document document;
+        if (readOptionsFromMaster){
+            document = readOptionsFromMasterConfigFile(masterFilename);
+        } else {
+            document = openMasterConfigFile(masterFilename);
+        }
         String controlFile, testGroup, test;
         List<Node> runNodes;
         runNodes = document.selectNodes("/xmlReplayMaster/run");
@@ -384,7 +398,7 @@ public class XmlReplay {
             authsMapINFO = "Using AuthsMap from control file: "+authsMap;
         }
         System.out.println("XmlReplay running:"
-                          +"\r\n   controlFile: "+controlFile
+                          +"\r\n   controlFile: "+ (new File(controlFile).getCanonicalPath())
                           +"\r\n   protoHostPort: "+protoHostPort
                           +"\r\n   testGroup: "+testGroupID
                           + (Tools.notEmpty(oneTestID) ? "\r\n   oneTestID: "+oneTestID : "")
@@ -585,6 +599,9 @@ public class XmlReplay {
             String controlFilename   = opt(line, "controlFilename");
             String xmlReplayMaster  = opt(line, "xmlReplayMaster");
 
+            xmlReplayBaseDir = Tools.fixFilename(xmlReplayBaseDir);
+            controlFilename = Tools.fixFilename(controlFilename);
+
             boolean bAutoDeletePOSTS = true;
             if (Tools.notEmpty(autoDeletePOSTS)) {
                 bAutoDeletePOSTS = Tools.isTrue(autoDeletePOSTS);
@@ -594,7 +611,7 @@ public class XmlReplay {
                 bDumpResults = Tools.isTrue(autoDeletePOSTS);
             }
             if (Tools.isEmpty(xmlReplayBaseDir)){
-                System.err.println("ERROR: xmlReplayBaseDir is empty.");
+                System.err.println("ERROR: xmlReplayBaseDir was not specified.");
                 return;
             }
             File f = new File(Tools.glue(xmlReplayBaseDir, "/", controlFilename));
@@ -608,30 +625,35 @@ public class XmlReplay {
                 return;
             }
 
-
+            String xmlReplayBaseDirResolved = (new File(xmlReplayBaseDir)).getCanonicalPath();
             System.out.println("XmlReplay ::"
                             + "\r\n    xmlReplayBaseDir: "+xmlReplayBaseDir
+                            + "\r\n    xmlReplayBaseDir(resolved): "+xmlReplayBaseDirResolved
                             + "\r\n    controlFilename: "+controlFilename
                             + "\r\n    xmlReplayMaster: "+xmlReplayMaster
                             + "\r\n    testGroupID: "+testGroupID
                             + "\r\n    testID: "+testID
                             + "\r\n    autoDeletePOSTS: "+bAutoDeletePOSTS
                             + (Tools.notEmpty(xmlReplayMaster)
-                                       ? ("\r\n    will use master file: "+f.getCanonicalPath()) 
+                                       ? ("\r\n    will use master file: "+fMaster.getCanonicalPath())
                                        : ("\r\n    will use control file: "+f.getCanonicalPath()) )
                              );
             
-            Dump dump = getDumpConfig();
-            dump.payloads = Tools.isTrue(dumpResults);
             if (Tools.notEmpty(xmlReplayMaster)){
                 if (Tools.notEmpty(controlFilename)){
                     System.out.println("WARN: controlFilename: "+controlFilename+" will not be used because master was specified.  Running master: "+xmlReplayMaster);
                 }
-                XmlReplay replay = new XmlReplay(xmlReplayBaseDir);
-                replay.setDump(dump);
-                replay.runMaster(xmlReplayMaster);
+                XmlReplay replay = new XmlReplay(xmlReplayBaseDirResolved);
+                replay.readOptionsFromMasterConfigFile(xmlReplayMaster);
+                replay.setAutoDeletePOSTS(bAutoDeletePOSTS);
+                Dump dumpFromMaster = replay.getDump();
+                dumpFromMaster.payloads = Tools.isTrue(dumpResults);
+                replay.setDump(dumpFromMaster);
+                replay.runMaster(xmlReplayMaster, false); //false, because we already just read the options, and override a few.
             } else {
-                runXmlReplayFile(xmlReplayBaseDir, controlFilename, testGroupID, testID, createResultsMap(), bAutoDeletePOSTS, dump, "", null);
+                Dump dump = getDumpConfig();
+                dump.payloads = Tools.isTrue(dumpResults);
+                runXmlReplayFile(xmlReplayBaseDirResolved, controlFilename, testGroupID, testID, createResultsMap(), bAutoDeletePOSTS, dump, "", null);
             }
         } catch (ParseException exp) {
             // oops, something went wrong

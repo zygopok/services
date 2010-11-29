@@ -37,6 +37,7 @@ import org.collectionspace.services.authorization.ActionType;
 import org.collectionspace.services.authorization.Permission;
 import org.collectionspace.services.authorization.EffectType;
 import org.collectionspace.services.authorization.PermissionAction;
+import org.collectionspace.services.authorization.PermissionActionUtil;
 import org.collectionspace.services.authorization.PermissionRole;
 import org.collectionspace.services.authorization.PermissionValue;
 import org.collectionspace.services.authorization.PermissionsList;
@@ -57,9 +58,10 @@ import org.collectionspace.services.common.security.SecurityUtils;
  */
 public class AuthorizationGen {
 
-    final public static String ROLE_ADMINISTRATOR = "ROLE_ADMINISTRATOR";
-    final public static String ROLE_TENANT_ADMINISTRATOR = "ROLE_TENANT_ADMINISTRATOR";
-    final public static String ROLE_TENANT_READER = "ROLE_TENANT_READER";
+	final public static String ROLE_PREFIX = "ROLE_";
+    final public static String ROLE_ADMINISTRATOR = "ADMINISTRATOR";
+    final public static String ROLE_TENANT_ADMINISTRATOR = "TENANT_ADMINISTRATOR";
+    final public static String ROLE_TENANT_READER = "TENANT_READER";
     final public static String ROLE_ADMINISTRATOR_ID = "0";
     //
     // ActionGroup labels/constants
@@ -154,21 +156,20 @@ public class AuthorizationGen {
         ArrayList<PermissionAction> pas = new ArrayList<PermissionAction>();
         perm.setActions(pas);
 
-        PermissionAction pa = new PermissionAction();
-        pa.setName(ActionType.CREATE);
-        pas.add(pa);
-        PermissionAction pa1 = new PermissionAction();
-        pa1.setName(ActionType.READ);
-        pas.add(pa1);
-        PermissionAction pa2 = new PermissionAction();
-        pa2.setName(ActionType.UPDATE);
-        pas.add(pa2);
-        PermissionAction pa3 = new PermissionAction();
-        pa3.setName(ActionType.DELETE);
-        pas.add(pa3);
-        PermissionAction pa4 = new PermissionAction();
-        pa4.setName(ActionType.SEARCH);
-        pas.add(pa4);
+        PermissionAction permAction = PermissionActionUtil.create(perm, ActionType.CREATE);
+        pas.add(permAction);
+        
+        permAction = PermissionActionUtil.create(perm, ActionType.READ);
+        pas.add(permAction);
+        
+        permAction = PermissionActionUtil.create(perm, ActionType.UPDATE);
+        pas.add(permAction);
+        
+        permAction = PermissionActionUtil.create(perm, ActionType.DELETE);
+        pas.add(permAction);
+        
+        permAction = PermissionActionUtil.create(perm, ActionType.SEARCH);
+        pas.add(permAction);
         
         return perm;
     }
@@ -220,13 +221,12 @@ public class AuthorizationGen {
         ArrayList<PermissionAction> pas = new ArrayList<PermissionAction>();
         perm.setActions(pas);
 
-        PermissionAction pa1 = new PermissionAction();
-        pa1.setName(ActionType.READ);
-        pas.add(pa1);
+        PermissionAction permAction = PermissionActionUtil.create(perm, ActionType.READ);
+        pas.add(permAction);
 
-        PermissionAction pa4 = new PermissionAction();
-        pa4.setName(ActionType.SEARCH);
-        pas.add(pa4);
+        permAction = PermissionActionUtil.create(perm, ActionType.SEARCH);
+        pas.add(permAction);
+
         return perm;
     }
 
@@ -257,14 +257,17 @@ public class AuthorizationGen {
 
             Role rrole = buildTenantReaderRole(tenantId);
             readerRoles.add(rrole);
-
         }
     }
 
     private Role buildTenantAdminRole(String tenantId) {
         Role role = new Role();
         role.setCreatedAtItem(new Date());
-        role.setRoleName(ROLE_TENANT_ADMINISTRATOR);
+        role.setDisplayName(ROLE_TENANT_ADMINISTRATOR);
+        role.setRoleName(ROLE_PREFIX +
+        		tenantId + "_" +
+        		role.getDisplayName());
+
         String id = UUID.randomUUID().toString();
         role.setCsid(id);
         role.setDescription("generated tenant admin role");
@@ -275,7 +278,10 @@ public class AuthorizationGen {
     private Role buildTenantReaderRole(String tenantId) {
         Role role = new Role();
         role.setCreatedAtItem(new Date());
-        role.setRoleName(ROLE_TENANT_READER);
+        role.setDisplayName(ROLE_TENANT_READER);
+        role.setRoleName(ROLE_PREFIX +
+        		tenantId + "_" +
+        		role.getDisplayName());
         String id = UUID.randomUUID().toString();
         role.setCsid(id);
         role.setDescription("generated tenant read only role");
@@ -291,21 +297,23 @@ public class AuthorizationGen {
     }
 
     public void associateDefaultPermissionsRoles() {
-        List<Role> roles = new ArrayList<Role>();
-        roles.add(cspaceAdminRole);
         for (Permission p : adminPermList) {
             PermissionRole permAdmRole = associatePermissionRoles(p, adminRoles);
             adminPermRoleList.add(permAdmRole);
-
-            //CSpace Administrator has all access
-            PermissionRole permCAdmRole = associatePermissionRoles(p, roles);
-            adminPermRoleList.add(permCAdmRole);
         }
 
         for (Permission p : readerPermList) {
             PermissionRole permRdrRole = associatePermissionRoles(p, readerRoles);
             readerPermRoleList.add(permRdrRole);
         }
+        
+        //CSpace Administrator has all access
+        List<Role> roles = new ArrayList<Role>();
+        roles.add(cspaceAdminRole);
+        for (Permission p : adminPermList) {
+            PermissionRole permCAdmRole = associatePermissionRoles(p, roles);
+            adminPermRoleList.add(permCAdmRole);
+        }        
     }
 
     public List<PermissionRole> associatePermissionsRoles(List<Permission> perms, List<Role> roles) {
@@ -333,6 +341,7 @@ public class AuthorizationGen {
         List<RoleValue> roleValues = new ArrayList<RoleValue>();
         for (Role role : roles) {
             RoleValue rv = new RoleValue();
+            // This needs to use the qualified name, not the display name
             rv.setRoleName(role.getRoleName().toUpperCase());
             rv.setRoleId(role.getCsid());
             roleValues.add(rv);
@@ -359,7 +368,8 @@ public class AuthorizationGen {
 
     private Role buildCSpaceAdminRole() {
         Role role = new Role();
-        role.setRoleName(ROLE_ADMINISTRATOR);
+        role.setDisplayName(ROLE_ADMINISTRATOR);
+        role.setRoleName(ROLE_PREFIX + role.getDisplayName());
         role.setCsid(ROLE_ADMINISTRATOR_ID);
         return role;
     }

@@ -3,10 +3,10 @@
     <protoHostPort>http://localhost:8180</protoHostPort>
     
     <!-- legal values for dumpServiceResult=[minimal,detailed,full] -->
-    <dump payloads="false" dumpServiceResult="minimal" />
+    <dump payloads="false" dumpServiceResult="full" />
     
-    <auths default="test">
-       <auth ID="test">dGVzdDp0ZXN0</auth>
+    <auths default="admin@collectionspace.org">
+       <auth ID="admin@collectionspace.org">YWRtaW5AY29sbGVjdGlvbnNwYWNlLm9yZzpBZG1pbmlzdHJhdG9y</auth>
     </auths>
 
     <!--
@@ -18,10 +18,13 @@
     This was working but is not now because security db hangs onto results from failed tests.
     However, it is more complete than testGroup="security", so is the correct testGroup to run.
     When the DB is cleaned with [ant create_db import] it runs OK.
-    <run controlFile="./security.xml" testGroup="securityRemovingRoleperms" />
     -->
 
-    <run controlFile="./organization.xml" testGroup="organization" />
+    <run controlFile="./security.xml" testGroup="securityRemovingRoleperms" />
+    <run controlFile="objectexit/object-exit.xml" testGroup="CRUDL" />
+    <run controlFile="objectexit/object-exit.xml" testGroup="domwalk" />
+    
+    <!--<run controlFile="./organization.xml" testGroup="organization" />-->
 
 </xmlReplayMaster>
 

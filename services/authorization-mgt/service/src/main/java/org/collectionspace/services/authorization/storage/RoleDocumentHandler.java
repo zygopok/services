@@ -54,16 +54,29 @@ public class RoleDocumentHandler
     public void handleCreate(DocumentWrapper<Role> wrapDoc) throws Exception {
         String id = UUID.randomUUID().toString();
         Role role = wrapDoc.getWrappedObject();
-        role.setRoleName(fixRoleName(role.getRoleName()));
-        role.setCsid(id);
+        
+        // Synthesize the display name if it was not passed in.
+        String displayName = role.getDisplayName();
+        boolean displayNameEmpty = true;
+        if (displayName != null) {
+        	displayNameEmpty = displayName.trim().isEmpty();    	
+        }
+        if (displayNameEmpty == true) {
+        	role.setDisplayName(role.getRoleName());
+        }
+        
         setTenant(role);
+        role.setRoleName(fixRoleName(role.getRoleName(),
+        		role.getTenantId()));
+        role.setCsid(id);
     }
 
     @Override
     public void handleUpdate(DocumentWrapper<Role> wrapDoc) throws Exception {
         Role roleFound = wrapDoc.getWrappedObject();
         Role roleReceived = getCommonPart();
-        roleReceived.setRoleName(fixRoleName(roleReceived.getRoleName()));
+        roleReceived.setRoleName(fixRoleName(roleReceived.getRoleName(),
+        		roleFound.getTenantId()));
         merge(roleReceived, roleFound);
     }
 
@@ -80,6 +93,9 @@ public class RoleDocumentHandler
             String msg = "Role name cannot be changed " + to.getRoleName();
             logger.error(msg);
             throw new BadRequestException(msg);
+        }
+        if (from.getDisplayName() != null) {
+        	to.setDisplayName(from.getDisplayName());
         }
         if (from.getRoleGroup() != null) {
             to.setRoleGroup(from.getRoleGroup());
@@ -185,9 +201,9 @@ public class RoleDocumentHandler
         }
     }
 
-    private String fixRoleName(String role) {
+    private String fixRoleName(String role, String tenantId) {
         String roleName = role.toUpperCase();
-        String rolePrefix = "ROLE_";
+        String rolePrefix = "ROLE_" + tenantId + "_";
         if (!roleName.startsWith(rolePrefix)) {
             roleName = rolePrefix + roleName;
         }

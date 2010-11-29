@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmlReplayMaster>
+<!-- Use this file to drive local testing.  Check it in or don't ... no automated tests should reference this file. -->
+    <protoHostPort>http://localhost:8180</protoHostPort>
+    
+    <!-- legal values for dumpServiceResult=[minimal,detailed,full] -->
+    <dump payloads="false" dumpServiceResult="minimal" />
+    
+    <auths default="admin@collectionspace.org">
+       <auth ID="admin@collectionspace.org">YWRtaW5AY29sbGVjdGlvbnNwYWNlLm9yZzpBZG1pbmlzdHJhdG9y</auth>
+    </auths>
+
+
+    <run controlFile="objectexit/object-exit.xml" testGroup="CRUDL" />
+    <run controlFile="objectexit/object-exit.xml" testGroup="domwalk" />
+    
+
+</xmlReplayMaster>
+

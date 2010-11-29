@@ -14,7 +14,7 @@
         
     <!-- begin movingimages.us tenant meta-data -->
     <tenant:tenantBinding
-        id="1" name="movingimage.us" displayName="Museum of Moving Images" version="0.1">
+        id="1" name="collectionspace.org" displayName="CollectionSpace Demo" version="0.1">
 
         <tenant:repositoryDomain name="default-domain" repositoryClient="nuxeo-java"/>
 
@@ -203,9 +203,10 @@
                               versionable="true" auditable="false"
                               label="loansin_common" updated="" order="1">
                     <service:properties>
-                        <types:item><types:key>authRef</types:key><types:value>lender</types:value></types:item>
-                        <types:item><types:key>authRef</types:key><types:value>lendersAuthorizer</types:value></types:item>
-                        <types:item><types:key>authRef</types:key><types:value>lendersContact</types:value></types:item>
+                        <!-- Commented out for now, as searching within a field in a complexType breaks searches -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lender</types:value></types:item -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lendersAuthorizer</types:value></types:item -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lendersContact</types:value></types:item -->
                         <types:item><types:key>authRef</types:key><types:value>loanInContact</types:value></types:item>
                         <types:item><types:key>authRef</types:key><types:value>borrowersAuthorizer</types:value></types:item>
                     </service:properties>
@@ -1200,7 +1201,7 @@
         </tenant:serviceBindings>
         
     </tenant:tenantBinding>
-    <!-- end movingimages.us tenant meta-data -->
+    <!-- end collectionspace.org tenant meta-data -->
 
 
     <!-- ##################################################################### -->
@@ -1396,9 +1397,10 @@
                               versionable="true" auditable="false"
                               label="loansin_common" updated="" order="1">
                     <service:properties>
-                        <types:item><types:key>authRef</types:key><types:value>lender</types:value></types:item>
-                        <types:item><types:key>authRef</types:key><types:value>lendersAuthorizer</types:value></types:item>
-                        <types:item><types:key>authRef</types:key><types:value>lendersContact</types:value></types:item>
+                        <!-- Commented out for now, as searching within a field in a complexType breaks searches -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lender</types:value></types:item -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lendersAuthorizer</types:value></types:item -->
+                        <!-- types:item><types:key>authRef</types:key><types:value>lendersContact</types:value></types:item -->
                         <types:item><types:key>authRef</types:key><types:value>loanInContact</types:value></types:item>
                         <types:item><types:key>authRef</types:key><types:value>borrowersAuthorizer</types:value></types:item>
                     </service:properties>

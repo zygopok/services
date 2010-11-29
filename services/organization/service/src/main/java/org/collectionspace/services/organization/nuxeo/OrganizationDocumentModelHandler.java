@@ -44,8 +44,8 @@ import org.slf4j.LoggerFactory;
 /**
  * OrganizationDocumentModelHandler
  *
- * $LastChangedRevision: $
- * $LastChangedDate: $
+ * $LastChangedRevision$
+ * $LastChangedDate$
  */
 public class OrganizationDocumentModelHandler
 		extends AuthorityItemDocumentModelHandler<OrganizationsCommon, OrganizationsCommonList> {
@@ -98,8 +98,11 @@ public class OrganizationDocumentModelHandler
     	if(shortDisplayNameComputed==null)
     		shortDisplayNameComputed = true;
     	if (displayNameComputed || shortDisplayNameComputed) {
-    		String shortName = (String) docModel.getProperty(commonPartLabel,
-    									OrganizationJAXBSchema.SHORT_NAME);
+                 List<Object> mainBodyGroupList = (List<Object>) docModel.getProperty(commonPartLabel,
+                         OrganizationJAXBSchema.MAIN_BODY_GROUP_LIST);
+                 // FIXME: Determine how to handle cases where primary short name is null or empty.
+                String shortName = primaryValueFromMultivalue(mainBodyGroupList,
+                        OrganizationJAXBSchema.SHORT_NAME);
     		if(shortDisplayNameComputed) {
 	    		String displayName = prepareDefaultDisplayName(shortName, null);
 	    		docModel.setProperty(commonPartLabel, OrganizationJAXBSchema.SHORT_DISPLAY_NAME,
@@ -183,5 +186,6 @@ public class OrganizationDocumentModelHandler
     public String getQProperty(String prop) {
         return OrganizationConstants.NUXEO_SCHEMA_NAME + ":" + prop;
     }
+
 }
 

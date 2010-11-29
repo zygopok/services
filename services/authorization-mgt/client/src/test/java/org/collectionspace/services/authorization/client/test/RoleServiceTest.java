@@ -174,7 +174,10 @@ public class RoleServiceTest extends AbstractServiceTestImpl {
         int statusCode = res.getStatus();
 
         if (logger.isDebugEnabled()) {
+        	logger.debug(testName + ": Role with name \"" +
+        			knownRoleName + "\" should already exist, so this request should fail.");
             logger.debug(testName + ": status = " + statusCode);
+            logger.debug(testName + ": " + res);
         }
         Assert.assertTrue(REQUEST_TYPE.isValidStatusCode(statusCode),
                 invalidStatusCodeMessage(REQUEST_TYPE, statusCode));
@@ -351,7 +354,10 @@ public class RoleServiceTest extends AbstractServiceTestImpl {
         Role output = (Role) res.getEntity();
         Assert.assertNotNull(output);
 
-        String roleNameToVerify = "ROLE_" + verifyRoleName.toUpperCase();
+        //FIXME: Tenant ID of "1" should not be hard coded
+        String roleNameToVerify = "ROLE_" +
+        	"1_" +
+        	verifyRoleName.toUpperCase();
         Assert.assertEquals(output.getRoleName(), roleNameToVerify,
                 "RoleName fix did not work!");
     }
@@ -491,6 +497,7 @@ public class RoleServiceTest extends AbstractServiceTestImpl {
         Role roleToUpdate = new Role();
         roleToUpdate.setCsid(knownResourceId);
         roleToUpdate.setRoleName(knownRoleName);
+        roleToUpdate.setDisplayName(knownRoleName);
         
         // Update the content of this resource.
         roleToUpdate.setDescription("updated role description");
@@ -531,6 +538,7 @@ public class RoleServiceTest extends AbstractServiceTestImpl {
         roleToUpdate.setCsid(knownResourceId);
         // Update the content of this resource.
         roleToUpdate.setRoleName("UPDATED-ROLE_USERS_TEST");
+        roleToUpdate.setDisplayName("UPDATED-ROLE_USERS_TEST");
         if (logger.isDebugEnabled()) {
             logger.debug("updated object");
             logger.debug(objectAsXmlString(roleToUpdate,
@@ -720,7 +728,9 @@ public class RoleServiceTest extends AbstractServiceTestImpl {
             String description,
             boolean useRoleName) {
 
-        Role role = RoleFactory.createRoleInstance(roleName, description,
+        Role role = RoleFactory.createRoleInstance(roleName,
+        		roleName, //the display name
+        		description,
                 useRoleName);
         if (logger.isDebugEnabled()) {
             logger.debug("to be created, role");

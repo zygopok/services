@@ -177,10 +177,10 @@ public class LocationAuthorityServiceTest extends AbstractServiceTestImpl { //FI
         LocationAuthorityClient client = new LocationAuthorityClient();
         String shortId = createIdentifier();
     	String displayName = "displayName-" + shortId;
-    	String baseRefName = LocationAuthorityClientUtils.createLocationAuthRefName(shortId, null);
+    	String baseRefName = LocationAuthorityClientUtils.createLocationAuthRefName(getServiceClientTenantID(), shortId, null);
     	PoxPayloadOut multipart = 
             LocationAuthorityClientUtils.createLocationAuthorityInstance(
-    	    displayName, shortId, client.getCommonPartName());
+    	    getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
     	String newID = null;
         ClientResponse<Response> res = client.create(multipart);
         try {
@@ -259,7 +259,7 @@ public class LocationAuthorityServiceTest extends AbstractServiceTestImpl { //FI
         shelf1Map.put(LocationJAXBSchema.LOCATION_TYPE, TEST_LOCATION_TYPE);
         shelf1Map.put(LocationJAXBSchema.TERM_STATUS, TEST_STATUS);
         
-        String newID = LocationAuthorityClientUtils.createItemInAuthority(vcsid,
+        String newID = LocationAuthorityClientUtils.createItemInAuthority(getServiceClientTenantID(), vcsid,
         		authRefName, shelf1Map, client );
 
         // Store the ID returned from the first item resource created
@@ -815,7 +815,7 @@ public class LocationAuthorityServiceTest extends AbstractServiceTestImpl { //FI
      * Read item list.
      *
      * @param vcsid the vcsid
-     * @param name the name
+     * @param shortId the name
      */
     private void readItemList(String vcsid, String shortId) {
 
@@ -1086,7 +1086,7 @@ public class LocationAuthorityServiceTest extends AbstractServiceTestImpl { //FI
         LocationAuthorityClient client = new LocationAuthorityClient();
    	String displayName = "displayName-NON_EXISTENT_ID";
     	PoxPayloadOut multipart = LocationAuthorityClientUtils.createLocationAuthorityInstance(
-    				displayName, "nonEx", client.getCommonPartName());
+    				getServiceClientTenantID(), displayName, "nonEx", client.getCommonPartName());
         ClientResponse<String> res =
                 client.update(NON_EXISTENT_ID, multipart);
         try {

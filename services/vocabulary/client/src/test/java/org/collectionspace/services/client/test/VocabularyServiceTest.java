@@ -123,8 +123,9 @@ public class VocabularyServiceTest extends AbstractServiceTestImpl {
         VocabularyClient client = new VocabularyClient();
         String identifier = createIdentifier();
         String displayName = "displayName-" + identifier;
+        String tenantID = getServiceClientTenantID();
     	PoxPayloadOut multipart = VocabularyClientUtils.createEnumerationInstance(
-    					displayName, identifier, client.getCommonPartName());
+    					tenantID, displayName, identifier, client.getCommonPartName());
         ClientResponse<Response> res = client.create(multipart);
         int statusCode = res.getStatus();
 
@@ -145,8 +146,8 @@ public class VocabularyServiceTest extends AbstractServiceTestImpl {
         // for additional tests below.
         if (knownResourceId == null){
         	setKnownResource(extractId(res), identifier,
-        			VocabularyClientUtils.createVocabularyRefName(identifier, null),
-        			VocabularyClientUtils.createVocabularyRefName(identifier, displayName));
+        			VocabularyClientUtils.createVocabularyRefName(tenantID, identifier, null),
+        			VocabularyClientUtils.createVocabularyRefName(tenantID, identifier, displayName));
             if (logger.isDebugEnabled()) {
                 logger.debug(testName + ": knownResourceId=" + knownResourceId);
             }
@@ -232,6 +233,7 @@ public class VocabularyServiceTest extends AbstractServiceTestImpl {
         // Submit the request to the service and store the response.
         VocabularyClient client = new VocabularyClient();
     	PoxPayloadOut multipart = VocabularyClientUtils.createEnumerationInstance(
+    	                 getServiceClientTenantID(),
     					"Vocab with Bad Short Id", "Bad Short Id!", client.getCommonPartName());
         ClientResponse<Response> res = client.create(multipart);
         int statusCode = res.getStatus();
@@ -1081,7 +1083,7 @@ public class VocabularyServiceTest extends AbstractServiceTestImpl {
         VocabularyClient client = new VocabularyClient();
     	String displayName = "displayName-" + NON_EXISTENT_ID;
     	PoxPayloadOut multipart = VocabularyClientUtils.createEnumerationInstance(
-				displayName, NON_EXISTENT_ID, client.getCommonPartName());
+				getServiceClientTenantID(), displayName, NON_EXISTENT_ID, client.getCommonPartName());
         ClientResponse<String> res =
                 client.update(NON_EXISTENT_ID, multipart);
         int statusCode = res.getStatus();
@@ -1115,7 +1117,7 @@ public class VocabularyServiceTest extends AbstractServiceTestImpl {
         itemInfo.put(AuthorityItemJAXBSchema.DISPLAY_NAME, "display-nonex");
         PoxPayloadOut multipart = 
         	VocabularyClientUtils.createVocabularyItemInstance( 
-        		VocabularyClientUtils.createVocabularyRefName(NON_EXISTENT_ID, null),
+        		VocabularyClientUtils.createVocabularyRefName(getServiceClientTenantID(), NON_EXISTENT_ID, null),
         		itemInfo, client.getCommonPartItemName());
         ClientResponse<String> res =
                 client.updateItem(knownResourceId, NON_EXISTENT_ID, multipart);

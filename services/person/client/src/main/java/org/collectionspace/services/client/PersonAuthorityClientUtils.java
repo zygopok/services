@@ -38,6 +38,7 @@ import javax.ws.rs.core.Response;
 
 import org.collectionspace.services.PersonJAXBSchema;
 import org.collectionspace.services.client.test.ServiceRequestType;
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.person.GroupList;
 import org.collectionspace.services.person.NationalityList;
 import org.collectionspace.services.person.OccupationList;
@@ -136,11 +137,12 @@ public class PersonAuthorityClientUtils {
      * @return the multipart output
      */
     public static PoxPayloadOut createPersonAuthorityInstance(
-    		String displayName, String shortIdentifier, String headerLabel ) {
+    		String tenantID,
+            String displayName, String shortIdentifier, String headerLabel ) {
         PersonauthoritiesCommon personAuthority = new PersonauthoritiesCommon();
         personAuthority.setDisplayName(displayName);
         personAuthority.setShortIdentifier(shortIdentifier);
-        String refName = createPersonAuthRefName(shortIdentifier, displayName);
+        String refName = createPersonAuthRefName(tenantID, shortIdentifier, displayName);
         personAuthority.setRefName(refName);
         personAuthority.setVocabType("PersonAuthority");
         PoxPayloadOut multipart = new PoxPayloadOut(PersonAuthorityClient.SERVICE_PAYLOAD_NAME);
@@ -379,36 +381,17 @@ public class PersonAuthorityClientUtils {
     	
     	return result;
     }
-
-    /**
-     * Creates the personAuthority ref name.
-     *
-     * @param shortId the personAuthority shortIdentifier
-     * @param displaySuffix displayName to be appended, if non-null
-     * @return the string
-     */
-    public static String createPersonAuthRefName(String shortId, String displaySuffix) {
-    	String refName = "urn:cspace:org.collectionspace.demo:personauthority:name("
-    			+shortId+")";
-    	if(displaySuffix!=null&&!displaySuffix.isEmpty())
-    		refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createPersonAuthRefName(String tenantName,
+                                                 String shortIdentifier,
+                                                 String displaySuffix) {
+        String SERVICE_NAME = RefName.HACK_PERSONAUTHORITIES; //Todo: get rid of this.
+        return RefName.buildAuthority(tenantName, SERVICE_NAME, shortIdentifier, displaySuffix).toString();
     }
 
-    /**
-     * Creates the person ref name.
-     *
-     * @param personAuthRefName the person auth ref name
-     * @param shortId the person shortIdentifier
-     * @param displaySuffix displayName to be appended, if non-null
-     * @return the string
-     */
-    public static String createPersonRefName(
-    						String personAuthRefName, String shortId, String displaySuffix) {
-    	String refName = personAuthRefName+":person:name("+shortId+")";
-    	if(displaySuffix!=null&&!displaySuffix.isEmpty())
-    		refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createPersonRefName(String vocabularyRefName,
+                                             String shortIdentifier,
+                                             String displaySuffix) {
+        return RefName.buildAuthorityItem(vocabularyRefName, shortIdentifier, displaySuffix).toString();
     }
 
     /**

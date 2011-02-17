@@ -175,7 +175,7 @@ public class PersonAuthRefDocsTest extends BaseServiceTest {
     protected void createPersonRefs() {
         PersonAuthorityClient personAuthClient = new PersonAuthorityClient();
         PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(
-                PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
+                getServiceClientTenantID(),PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
         ClientResponse<Response> res = personAuthClient.create(multipart);
         int statusCode = res.getStatus();
 

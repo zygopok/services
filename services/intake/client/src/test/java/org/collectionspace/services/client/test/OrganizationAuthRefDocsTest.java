@@ -174,9 +174,9 @@ public class OrganizationAuthRefDocsTest extends BaseServiceTest {
     protected void createOrgRefs(){
         OrgAuthorityClient orgAuthClient = new OrgAuthorityClient();
         orgAuthRefName = 
-    		OrgAuthorityClientUtils.createOrgAuthRefName(ORGANIZATION_AUTHORITY_NAME, null);
+    		OrgAuthorityClientUtils.createOrgAuthRefName(getServiceClientTenantID(), ORGANIZATION_AUTHORITY_NAME, null);
         PoxPayloadOut multipart = OrgAuthorityClientUtils.createOrgAuthorityInstance(
-    			ORGANIZATION_AUTHORITY_NAME, ORGANIZATION_AUTHORITY_NAME, orgAuthClient.getCommonPartName());
+    			getServiceClientTenantID(), ORGANIZATION_AUTHORITY_NAME, ORGANIZATION_AUTHORITY_NAME, orgAuthClient.getCommonPartName());
         ClientResponse<Response> res = orgAuthClient.create(multipart);
         int statusCode = res.getStatus();
 

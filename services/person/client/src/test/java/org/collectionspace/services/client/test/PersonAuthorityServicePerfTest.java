@@ -156,10 +156,10 @@ public class PersonAuthorityServicePerfTest extends BaseServiceTest {
         PersonAuthorityClient client = new PersonAuthorityClient();
         String shortId = "perfTestPersons";
     	String displayName = "Perf Test Person Auth";
-    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(shortId, null);
+    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(getServiceClientTenantID(), shortId, null);
     	PoxPayloadOut multipart =
             PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    	    displayName, shortId, client.getCommonPartName());
+    	    getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
 
     	String newID = null;
     	ClientResponse<Response> res = client.create(multipart);
@@ -186,8 +186,6 @@ public class PersonAuthorityServicePerfTest extends BaseServiceTest {
     /**
      * Creates an item in the authority, used for partial term matching tests.
      *
-     * @param authorityCsid The CSID of the Authority in which the term will be created.
-     * @param authRefName The refName of the Authority in which the term will be created.
      */
     private void createItem(String firstName, String lastName, PersonAuthorityClient client )
         throws Exception {

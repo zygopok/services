@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.client.PoxPayloadIn;
 import org.collectionspace.services.client.PoxPayloadOut;
 import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
@@ -85,7 +86,7 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 
 	final static ClientType CLIENT_TYPE = ServiceMain.getInstance().getClientType();
 	
-	final static String URN_PREFIX = "urn:cspace:";
+	final static String URN_PREFIX = RefName.URN_PREFIX;
 	final static int URN_PREFIX_LEN = URN_PREFIX.length();
 	final static String URN_PREFIX_NAME = "name(";
 	final static int URN_NAME_PREFIX_LEN = URN_PREFIX_LEN + URN_PREFIX_NAME.length();
@@ -194,8 +195,7 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	/**
 	 * Creates the authority.
 	 * 
-	 * @param input the input
-	 * 
+	 *
 	 * @return the response
 	 */
 	@POST
@@ -316,9 +316,9 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 			ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext(queryParams);
 			DocumentHandler handler = createDocumentHandler(ctx);
 			DocumentFilter myFilter = handler.getDocumentFilter();
-			String nameQ = queryParams.getFirst("refName");
+			String nameQ = queryParams.getFirst(RefName.REFNAME);
 			if (nameQ != null) {
-				myFilter.setWhereClause(authorityCommonSchemaName+":refName='" + nameQ + "'");
+				myFilter.setWhereClause(authorityCommonSchemaName+":"+RefName.REFNAME+"='" + nameQ + "'");
 			}
 			getRepositoryClient(ctx).getFiltered(ctx, handler);
 			return (AuthCommonList) handler.getCommonPartList();
@@ -340,8 +340,7 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	 * Update authority.
 	 * 
 	 * @param specifier the csid or id
-	 * @param theUpdate the the update
-	 * 
+	 *
 	 * @return the multipart output
 	 */
 	@PUT
@@ -432,7 +431,6 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	/*************************************************************************
 	 * Create an AuthorityItem - this is a sub-resource of Authority
 	 * @param specifier either a CSID or one of the urn forms
-	 * @param input the payload 
 	 * @return Authority item response
 	 *************************************************************************/
 	@POST
@@ -441,6 +439,8 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 		try {
 			PoxPayloadIn input = new PoxPayloadIn(xmlPayload);
 			ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = null;
+			ServiceContext<PoxPayloadIn, PoxPayloadOut> parentCtx = null;
+
 			Specifier spec = getSpecifier(specifier, "createAuthorityItem", "CREATE_ITEM");
 			String parentcsid;
 			if(spec.form==SpecifierForm.CSID) {
@@ -450,8 +450,19 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	            ctx = createServiceContext(getServiceName());
 				parentcsid = getRepositoryClient(ctx).findDocCSID(ctx, whereClause);
 			}
+			
+            //CSPACE-3178
+            //First, extract parent refName.
+            parentCtx = createServiceContext(getServiceName());
+            DocumentWrapper<DocumentModel> parentDocModel = getRepositoryClient(parentCtx).getDoc(parentCtx, parentcsid);
+            String parentSchemaCommon = parentCtx.getCommonPartLabel();  //e.g. "personauthorities_common"
+            String parentRefName = (String)parentDocModel.getWrappedObject().getProperty(parentSchemaCommon, RefName.REFNAME);
+            //Now, with that refName, set it on the item object in memory,
+            //    it will get saved into repository by RemoteDocumentModelHandlerImpl<T,TL>.updateRefnameFromShortIdentifier(...)
 			ctx = createServiceContext(getItemServiceName(), input);
-			DocumentHandler handler = createItemDocumentHandler(ctx, parentcsid);
+            DocumentHandler handler = createItemDocumentHandler(ctx, parentcsid);
+            ((AuthorityItemDocumentModelHandler<?,?>)handler).setAuthorityRefNameBase(parentRefName);
+            //CSPACE-3178
 			String itemcsid = getRepositoryClient(ctx).create(ctx, handler);
 			UriBuilder path = UriBuilder.fromResource(resourceClass);
 			path.path(parentcsid + "/items/" + itemcsid);

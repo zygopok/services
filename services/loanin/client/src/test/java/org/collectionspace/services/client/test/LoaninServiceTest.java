@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 
 import org.collectionspace.services.client.CollectionSpaceClient;
 import org.collectionspace.services.client.LoaninClient;
+import org.collectionspace.services.client.PersonAuthorityClientUtils;
 import org.collectionspace.services.client.PayloadInputPart;
 import org.collectionspace.services.client.PayloadOutputPart;
 import org.collectionspace.services.client.PoxPayloadIn;
@@ -37,7 +38,7 @@ import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.collectionspace.services.loanin.LenderGroup;
 import org.collectionspace.services.loanin.LenderGroupList;
 import org.collectionspace.services.loanin.LoansinCommon;
-//import org.collectionspace.services.loanin.LoansinCommonList;
+import org.collectionspace.services.loanin.LoansinCommonList;
 
 import org.jboss.resteasy.client.ClientResponse;
 import org.testng.Assert;
@@ -68,8 +69,8 @@ public class LoaninServiceTest extends AbstractServiceTestImpl {
     /** The known resource id. */
     private String knownResourceId = null;
 
-    private String LENDER_REF_NAME =
-            "urn:cspace:org.collectionspace.demo:personauthority:name(TestPersonAuth):person:name(Harry Lender)'Harry Lender'";
+    private String _base = PersonAuthorityClientUtils.createPersonAuthRefName(getServiceClientTenantID(), "TestPersonAuth", "");
+    private String LENDER_REF_NAME = PersonAuthorityClientUtils.createPersonRefName(_base, "Harry Lender", "Harry Lender");
 
     /* (non-Javadoc)
      * @see org.collectionspace.services.client.test.BaseServiceTest#getClientInstance()
@@ -416,6 +417,7 @@ public class LoaninServiceTest extends AbstractServiceTestImpl {
         }
 
         // Optionally output additional data about list members for debugging.
+        /* TODO: CSPACE-3178.  Somehow this got broken with the pox stuff. so I commented this block out.
         boolean iterateThroughList = false;
         if (iterateThroughList && logger.isDebugEnabled()){
             List<AbstractCommonList.ListItem> items =
@@ -427,6 +429,8 @@ public class LoaninServiceTest extends AbstractServiceTestImpl {
                 i++;
             }
         }
+        */
+
     }
 
     // Failure outcomes

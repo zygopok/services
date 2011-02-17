@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
 import org.collectionspace.services.LocationJAXBSchema;
 import org.collectionspace.services.client.test.ServiceRequestType;
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.location.LocationsCommon;
 import org.collectionspace.services.location.LocationauthoritiesCommon;
 import org.dom4j.DocumentException;
@@ -33,11 +34,11 @@ public class LocationAuthorityClientUtils {
      * @return	The PoxPayloadOut payload for the create call
      */
     public static PoxPayloadOut createLocationAuthorityInstance(
-    		String displayName, String shortIdentifier, String headerLabel ) {
+    		String tenantID, String displayName, String shortIdentifier, String headerLabel ) {
         LocationauthoritiesCommon locationAuthority = new LocationauthoritiesCommon();
         locationAuthority.setDisplayName(displayName);
         locationAuthority.setShortIdentifier(shortIdentifier);
-        String refName = createLocationAuthRefName(shortIdentifier, displayName);
+        String refName = createLocationAuthRefName(tenantID, shortIdentifier, displayName);
         locationAuthority.setRefName(refName);
         locationAuthority.setVocabType("LocationAuthority"); //FIXME: REM - Should this really be hard-coded?
         PoxPayloadOut multipart = new PoxPayloadOut(LocationAuthorityClient.SERVICE_PAYLOAD_NAME);
@@ -105,7 +106,7 @@ public class LocationAuthorityClientUtils {
      * @param client the service client
      * @return the CSID of the new item
      */
-    public static String createItemInAuthority(String vcsid, 
+    public static String createItemInAuthority(String tenantID, String vcsid,
     		String locationAuthorityRefName, Map<String,String> locationMap,
     		LocationAuthorityClient client ) {
     	// Expected status code: 201 Created
@@ -131,7 +132,7 @@ public class LocationAuthorityClientUtils {
     				+"\" in locationAuthority: \"" + locationAuthorityRefName +"\"");
     	}
     	PoxPayloadOut multipart = 
-    		createLocationInstance( locationAuthorityRefName,
+    		createLocationInstance(locationAuthorityRefName,
     			locationMap, client.getItemCommonPartName() );
     	String newID = null;
     	ClientResponse<Response> res = client.createItem(vcsid, multipart);
@@ -220,32 +221,24 @@ public class LocationAuthorityClientUtils {
     /**
      * Creates the locationAuthority ref name.
      *
-     * @param shortId the locationAuthority shortIdentifier
+     * @param shortID the locationAuthority shortIdentifier
      * @param displaySuffix displayName to be appended, if non-null
      * @return the string
      */
-    public static String createLocationAuthRefName(String shortId, String displaySuffix) {
-    	String refName = "urn:cspace:org.collectionspace.demo:locationauthority:name("
-			+shortId+")";
-		if(displaySuffix!=null&&!displaySuffix.isEmpty())
-			refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createLocationAuthRefName(String tenantID, String shortID, String displaySuffix) {
+    	return RefName.buildAuthority(tenantID, RefName.HACK_LOCATIONAUTHORITIES, shortID, displaySuffix).toString();
     }
 
     /**
      * Creates the location ref name.
      *
      * @param locationAuthRefName the locationAuthority ref name
-     * @param shortId the location shortIdentifier
+     * @param shortID the location shortIdentifier
      * @param displaySuffix displayName to be appended, if non-null
      * @return the string
      */
-    public static String createLocationRefName(
-    						String locationAuthRefName, String shortId, String displaySuffix) {
-    	String refName = locationAuthRefName+":location:name("+shortId+")";
-		if(displaySuffix!=null&&!displaySuffix.isEmpty())
-			refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createLocationRefName(String locationAuthRefName, String shortID, String displaySuffix) {
+        return RefName.buildAuthorityItem(locationAuthRefName, shortID, displaySuffix).toString();
     }
 
     public static String extractId(ClientResponse<Response> res) {

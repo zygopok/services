@@ -47,6 +47,16 @@ public class Tools {
         return first+separator+second;
     }
 
+    /** Remove all whitespace from a String.  */
+    public static String squeeze(String s) {
+        return s.replaceAll("\\s+", "");
+    }
+
+    /** Milliseconds from start time as defined by the Date class. */
+    public static Long now(){
+        return new Long((new java.util.Date()).getTime());
+    }
+
     /** Handles null strings as empty.  */
     public static boolean isEmpty(String str){
         return !notEmpty(str);

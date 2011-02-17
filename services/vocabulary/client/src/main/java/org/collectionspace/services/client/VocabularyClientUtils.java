@@ -7,6 +7,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
 import org.collectionspace.services.client.test.ServiceRequestType;
 import org.collectionspace.services.vocabulary.VocabularyitemsCommon;
@@ -22,11 +23,11 @@ public class VocabularyClientUtils {
         LoggerFactory.getLogger(VocabularyClientUtils.class);
     
     public static PoxPayloadOut createEnumerationInstance(
-    		String displayName, String shortIdentifier, String headerLabel ) {
+    		String tenantID,String displayName, String shortIdentifier, String headerLabel ) {
         VocabulariesCommon vocabulary = new VocabulariesCommon();
         vocabulary.setDisplayName(displayName);
         vocabulary.setShortIdentifier(shortIdentifier);
-        String refName = createVocabularyRefName(shortIdentifier, displayName);
+        String refName = createVocabularyRefName(tenantID,shortIdentifier, displayName);
         vocabulary.setRefName(refName);
         vocabulary.setVocabType("enum");
         PoxPayloadOut multipart = new PoxPayloadOut(VocabularyClient.SERVICE_PAYLOAD_NAME);
@@ -126,20 +127,16 @@ public class VocabularyClientUtils {
         return id;
     }
     
-    public static String createVocabularyRefName(String shortIdentifier, String displaySuffix) {
-    	String refName = "urn:cspace:org.collectionspace.demo:vocabulary:name("
-    			+ shortIdentifier + ")";
-    	if(displaySuffix != null && !displaySuffix.isEmpty())
-    		refName += "'" + displaySuffix + "'";
-    	return refName;
+    public static String createVocabularyRefName(String tenantName,
+                                                 String shortIdentifier,
+                                                 String displaySuffix) {
+        return  RefName.buildAuthority(tenantName, RefName.HACK_VOCABULARIES, shortIdentifier, displaySuffix).toString();
     }
 
-    public static String createVocabularyItemRefName(
-    						String vocabularyRefName, String shortIdentifier, String displaySuffix) {
-    	String refName = vocabularyRefName+":item:name("+shortIdentifier+")";
-    	if(displaySuffix != null && !displaySuffix.isEmpty())
-    		refName += "'" + displaySuffix + "'";
-    	return refName;
+    public static String createVocabularyItemRefName(String vocabularyRefName,
+                                                     String shortIdentifier,
+                                                     String displaySuffix) {
+        return RefName.buildAuthorityItem(vocabularyRefName, shortIdentifier, displaySuffix).toString();
     }
 
 }

@@ -38,6 +38,7 @@ import javax.ws.rs.core.Response;
 import org.collectionspace.services.OrganizationJAXBSchema;
 import org.collectionspace.services.client.test.BaseServiceTest;
 import org.collectionspace.services.client.test.ServiceRequestType;
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.organization.ContactNameList;
 import org.collectionspace.services.organization.FunctionList;
 import org.collectionspace.services.organization.GroupList;
@@ -139,11 +140,11 @@ public class OrgAuthorityClientUtils {
      * @return the multipart output
      */
     public static PoxPayloadOut createOrgAuthorityInstance(
-    		String displayName, String shortIdentifier, String headerLabel ) {
+    		String tenantID,String displayName, String shortIdentifier, String headerLabel ) {
         OrgauthoritiesCommon orgAuthority = new OrgauthoritiesCommon();
         orgAuthority.setDisplayName(displayName);
         orgAuthority.setShortIdentifier(shortIdentifier);
-        String refName = createOrgAuthRefName(shortIdentifier, displayName);
+        String refName = createOrgAuthRefName(tenantID, shortIdentifier, displayName);
         orgAuthority.setRefName(refName);
         orgAuthority.setVocabType("OrgAuthority");
         PoxPayloadOut multipart = new PoxPayloadOut(OrgAuthorityClient.SERVICE_PAYLOAD_NAME);
@@ -359,12 +360,10 @@ public class OrgAuthorityClientUtils {
      * @param displaySuffix displayName to be appended, if non-null
      * @return the string
      */
-    public static String createOrgAuthRefName(String shortId, String displaySuffix) {
-    	String refName = "urn:cspace:org.collectionspace.demo:orgauthority:name("
-			+shortId+")";
-    	if(displaySuffix!=null&&!displaySuffix.isEmpty())
-    		refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createOrgAuthRefName(String tenantID, String shortId, String displaySuffix) {
+        String SERVICE_NAME = RefName.HACK_ORGAUTHORITIES; //Todo: get this from tenant-bindings somehow, or some other mechanism available to client.
+        RefName.Authority authority = RefName.buildAuthority(tenantID, SERVICE_NAME, shortId, displaySuffix);
+    	return authority.toString();
     }
 
     /**
@@ -375,12 +374,12 @@ public class OrgAuthorityClientUtils {
      * @param displaySuffix displayName to be appended, if non-null
      * @return the string
      */
-    public static String createOrganizationRefName(
-			String orgAuthRefName, String shortId, String displaySuffix) {
-    	String refName = orgAuthRefName+":organization:name("+shortId+")";
-    	if(displaySuffix!=null&&!displaySuffix.isEmpty())
-    		refName += "'"+displaySuffix+"'";
-    	return refName;
+    public static String createOrganizationRefName(String orgAuthRefName,
+                                                   String shortId,
+                                                   String displaySuffix) {
+        RefName.Authority authority = RefName.Authority.parse(orgAuthRefName);
+        RefName.AuthorityItem item = RefName.buildAuthorityItem(authority, shortId, displaySuffix);
+    	return item.toString();
     }
 
     /**

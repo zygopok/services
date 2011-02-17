@@ -595,10 +595,10 @@ public class PersonAuthoritySearchTest extends BaseServiceTest {
         PersonAuthorityClient client = new PersonAuthorityClient();
         String shortId = createIdentifier();
     	String displayName = "displayName-" + shortId;
-    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(shortId, null);
+    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(getServiceClientTenantID(), shortId, null);
     	PoxPayloadOut multipart =
             PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    	    displayName, shortId, client.getCommonPartName());
+    	    getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
 
     	String newID = null;
     	ClientResponse<Response> res = client.create(multipart);

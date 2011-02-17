@@ -32,6 +32,7 @@ import org.collectionspace.services.client.PayloadInputPart;
 import org.collectionspace.services.client.PayloadOutputPart;
 import org.collectionspace.services.client.PoxPayloadIn;
 import org.collectionspace.services.client.PoxPayloadOut;
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.collectionspace.services.loanout.LoanedObjectStatusGroup;
 import org.collectionspace.services.loanout.LoanedObjectStatusGroupList;
@@ -794,10 +795,14 @@ public class LoanoutServiceTest extends AbstractServiceTestImpl {
         LoansoutCommon loanoutCommon = new LoansoutCommon();
         loanoutCommon.setLoanOutNumber(loanOutNumber);
         loanoutCommon.setLoanReturnDate(returnDate);
-        loanoutCommon.setBorrower(
-           "urn:cspace:org.collectionspace.demo:orgauthority:name(TestOrgAuth):organization:name(Northern Climes Museum)'Northern Climes Museum'");
-        loanoutCommon.setBorrowersContact(
-            "urn:cspace:org.collectionspace.demo:personauthority:name(TestPersonAuth):person:name(Chris Contact)'Chris Contact'");
+        RefName.AuthorityItem borrower = RefName.buildAuthorityItem(getServiceClientTenantID(), RefName.HACK_ORGAUTHORITIES, "TestOrgAuth", "NorthernClimesMuseum", "Northern Climes Museum");
+        loanoutCommon.setBorrower(borrower.toString());
+        RefName.AuthorityItem borrowersContact = RefName.buildAuthorityItem(getServiceClientTenantID(),
+                                                                     RefName.HACK_PERSONAUTHORITIES,
+                                                                     "TestPersonAuth",
+                                                                     "ChrisContact",
+                                                                     "Chris Contact");
+        loanoutCommon.setBorrowersContact(borrowersContact.toString());
         loanoutCommon.setLoanPurpose("Allow people in cold climes to share the magic of Surfboards of the 1960s.");
         LoanedObjectStatusGroupList statusGroupList = new LoanedObjectStatusGroupList();
         List<LoanedObjectStatusGroup> statusGroups = statusGroupList.getLoanedObjectStatusGroup();

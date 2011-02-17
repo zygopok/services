@@ -128,5 +128,12 @@ public abstract class AuthorityDocumentModelHandler<AuthCommon, AuthCommonList>
     	return unQObjectProperties;
     }
     
+    @Override
+    public void handleCreate(DocumentWrapper<DocumentModel> wrapDoc) throws Exception {
+    	super.handleCreate(wrapDoc);
+        updateRefnameForAuthority(wrapDoc, authorityCommonSchemaName);//CSPACE-3178
+    }
+
+    
 }
 

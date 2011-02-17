@@ -35,6 +35,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.RefName;
+import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
+import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
 import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.collectionspace.services.client.PayloadInputPart;
 import org.collectionspace.services.client.PoxPayloadIn;
@@ -141,7 +145,6 @@ public abstract class RemoteDocumentModelHandlerImpl<T, TL>
     /**
      * Extract paging info.
      *
-     * @param commonsList the commons list
      * @return the tL
      * @throws Exception the exception
      */
@@ -456,17 +459,18 @@ public abstract class RemoteDocumentModelHandlerImpl<T, TL>
     }
 
     private AuthorityRefList.AuthorityRefItem authorityRefListItem(String authRefFieldName, String refName) {
-
         AuthorityRefList.AuthorityRefItem ilistItem = new AuthorityRefList.AuthorityRefItem();
+        RefName.AuthorityItem item = RefName.AuthorityItem.parse(refName);
         try {
-            RefNameUtils.AuthorityTermInfo termInfo = RefNameUtils.parseAuthorityTermInfo(refName);
-            ilistItem.setRefName(refName);
-            ilistItem.setAuthDisplayName(termInfo.inAuthority.displayName);
-            ilistItem.setItemDisplayName(termInfo.displayName);
+            ilistItem.setRefName(refName);  //CSPACE-3178 moved this first.
+            ilistItem.setAuthDisplayName(item.inAuthority.displayName);
+            ilistItem.setItemDisplayName(item.displayName);
             ilistItem.setSourceField(authRefFieldName);
-            ilistItem.setUri(termInfo.getRelativeUri());
+            ilistItem.setUri(item.getRelativeUri());
+            //logger.info("\r\n\r\n~~~~~~~~~~~~~~~~~\r\nparseAuthorityTermInfo() authRefFieldName:"+authRefFieldName+" refName:"+refName+" item:"+item);
         } catch (Exception e) {
             // Do nothing upon encountering an Exception here.
+            logger.error("\r\n\r\n~~~~~~~~~~~~~~~~~\r\nERROR parseAuthorityTermInfo() authRefFieldName:"+authRefFieldName+" refName:"+refName+" item:"+item);
         }
         return ilistItem;
     }
@@ -517,7 +521,6 @@ public abstract class RemoteDocumentModelHandlerImpl<T, TL>
      *
      * @param docModel The document model to get info from
      * @param schema The name of the schema (part)
-     * @param propertyName The simple scalar property type
      * @return property value as String
      */
     protected String getSimpleStringProperty(DocumentModel docModel, String schema, String propName) {
@@ -570,7 +573,6 @@ public abstract class RemoteDocumentModelHandlerImpl<T, TL>
      *
      * @param docModel The document model to get info from
      * @param schema The name of the schema (part)
-     * @param listName The name of the scalar list property
      * @return first value in list, as a String, or empty string if the list is empty
      */
     protected String getStringValueInPrimaryRepeatingComplexProperty(
@@ -637,6 +639,46 @@ public abstract class RemoteDocumentModelHandlerImpl<T, TL>
     		throw new RuntimeException("Unknown problem retrieving property {"+xpath+"}."
     				+e.getLocalizedMessage());
     	}
+    }
+    
+    
+    //CSPACE-3178
+    protected void updateRefnameForAuthority(DocumentWrapper<DocumentModel> wrapDoc, String schemaName) throws Exception {
+        DocumentModel docModel = wrapDoc.getWrappedObject();
+        String shortIdentifier = (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.SHORT_IDENTIFIER);
+        String displayName =     (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.DISPLAY_NAME);
+        MultipartServiceContext ctx = (MultipartServiceContext) getServiceContext();
+        RefName.Authority authority = RefName.buildAuthority(ctx.getTenantName(),
+                                                             ctx.getServiceName(),
+                                                             shortIdentifier,
+                                                             displayName);
+        String refName = authority.toString();
+        docModel.setProperty(schemaName , AuthorityJAXBSchema.REF_NAME, refName);
+    }
+
+    //CSPACE-3178
+    protected void updateRefnameForAuthorityItem(DocumentWrapper<DocumentModel> wrapDoc,
+                                                 String schemaName,
+                                                 String authorityRefBaseName) throws Exception {
+        DocumentModel docModel = wrapDoc.getWrappedObject();
+        String shortIdentifier = (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.SHORT_IDENTIFIER);
+        String displayName =     (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.DISPLAY_NAME);
+        /**
+         * Moved this experimental code for CSPACE-3178 to
+         *   services\common\src\main\java\org\collectionspace\services\common\vocabulary\nuxeo\AuthorityItemDocumentModelHandler.java
+         *
+         * if (Tools.isEmpty(shortIdentifier) && Tools.notEmpty(displayName)){
+         *   String fooShortIdentifier = "foobar";
+         *   shortIdentifier = fooShortIdentifier;
+         *   docModel.setProperty(schemaName , AuthorityJAXBSchema.SHORT_IDENTIFIER, fooShortIdentifier);
+         *}
+         */
+        if (Tools.isEmpty(authorityRefBaseName)){
+            throw new Exception("updateRefnameForAuthorityItem requires an authorityRefBaseName, but none was supplied.");
+        }
+        RefName.Authority authority = RefName.Authority.parse(authorityRefBaseName);
+        String refName = RefName.buildAuthorityItem(authority, shortIdentifier, displayName).toString();
+        docModel.setProperty(schemaName , AuthorityJAXBSchema.REF_NAME, refName);
     }
    
 }

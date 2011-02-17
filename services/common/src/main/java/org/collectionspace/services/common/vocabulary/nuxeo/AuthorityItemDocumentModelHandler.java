@@ -25,9 +25,11 @@ package org.collectionspace.services.common.vocabulary.nuxeo;
 
 import java.util.Map;
 
+import org.collectionspace.services.common.Tools;
 import org.collectionspace.services.common.document.DocumentWrapper;
 import org.collectionspace.services.common.service.ObjectPartType;
 import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
+import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
 import org.collectionspace.services.nuxeo.client.java.RemoteDocumentModelHandlerImpl;
 import org.collectionspace.services.nuxeo.util.NuxeoUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -72,15 +74,28 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon, AICommonList>
 		this.inAuthority = inAuthority;
 	}
 
+    protected String authorityRefNameBase;
+
+    public String getAuthorityRefNameBase(){
+        return this.authorityRefNameBase;
+    }
+    public void setAuthorityRefNameBase(String value){
+        this.authorityRefNameBase = value;
+    }
+
     /* (non-Javadoc)
      * @see org.collectionspace.services.nuxeo.client.java.DocumentModelHandler#handleCreate(org.collectionspace.services.common.document.DocumentWrapper)
      */
     @Override
     public void handleCreate(DocumentWrapper<DocumentModel> wrapDoc) throws Exception {
     	// first fill all the parts of the document
-    	super.handleCreate(wrapDoc);    	
+    	super.handleCreate(wrapDoc);
+        handleDisplayNameAsShortIdentifier(wrapDoc.getWrappedObject(), authorityItemCommonSchemaName);
     	handleInAuthority(wrapDoc.getWrappedObject());
+        updateRefnameForAuthorityItem(wrapDoc, authorityItemCommonSchemaName, getAuthorityRefNameBase());  //CSPACE-3178
     }
+
+
     
     /**
      * Check the logic around the parent pointer. Note that we only need do this on
@@ -94,6 +109,16 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon, AICommonList>
     	docModel.setProperty(authorityItemCommonSchemaName, 
     			AuthorityItemJAXBSchema.IN_AUTHORITY, inAuthority);
     }
+
+    private void handleDisplayNameAsShortIdentifier(DocumentModel docModel, String schemaName) throws Exception {
+        String shortIdentifier = (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.SHORT_IDENTIFIER);
+        String displayName =     (String)docModel.getProperty(schemaName, AuthorityItemJAXBSchema.DISPLAY_NAME);
+        if (Tools.isEmpty(shortIdentifier) && Tools.notEmpty(displayName)){
+            String cookedShortIdentifier = Tools.squeeze(displayName)+'-'+Tools.now().toString();
+            docModel.setProperty(schemaName , AuthorityJAXBSchema.SHORT_IDENTIFIER, cookedShortIdentifier);
+        }
+    }
+
 
 
     /**
@@ -168,6 +193,8 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon, AICommonList>
     	super.filterReadOnlyPropertiesForPart(objectProps, partMeta);
     	objectProps.remove(AuthorityItemJAXBSchema.IN_AUTHORITY);
     	objectProps.remove(AuthorityItemJAXBSchema.CSID);
+        //objectProps.remove(AuthorityItemJAXBSchema.SHORT_IDENTIFIER);  //CSPACE-3178
+        objectProps.remove(AuthorityItemJAXBSchema.REF_NAME);          //CSPACE-3178
     }
 
 }

@@ -176,10 +176,10 @@ public class PersonAuthorityServiceTest extends AbstractServiceTestImpl { //FIXM
         PersonAuthorityClient client = new PersonAuthorityClient();
         String shortId = createIdentifier();
     	String displayName = "displayName-" + shortId;
-    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(shortId, null);
+    	String baseRefName = PersonAuthorityClientUtils.createPersonAuthRefName(getServiceClientTenantID(), shortId, null);
     	PoxPayloadOut multipart = 
             PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    	    displayName, shortId, client.getCommonPartName());
+    	    getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
         
     	String newID = null;
     	ClientResponse<Response> res = client.create(multipart);
@@ -581,7 +581,7 @@ public class PersonAuthorityServiceTest extends AbstractServiceTestImpl { //FIXM
     	String displayName = "displayName-" + shortId;
         PoxPayloadOut multipart =
             PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    	    displayName, shortId, client.getCommonPartName());
+    	    getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
 
         // Submit the request to the service and store the response.
     	ClientResponse<Response> res = client.create(multipart);
@@ -1893,7 +1893,7 @@ public class PersonAuthorityServiceTest extends AbstractServiceTestImpl { //FIXM
         PersonAuthorityClient client = new PersonAuthorityClient();
         String displayName = "displayName-NON_EXISTENT_ID";
     	PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    				displayName, "NON_EXISTENT_SHORT_ID", client.getCommonPartName());
+    				getServiceClientTenantID(), displayName, "NON_EXISTENT_SHORT_ID", client.getCommonPartName());
         ClientResponse<String> res =
                 client.update(NON_EXISTENT_ID, multipart);
         try {
@@ -1939,8 +1939,8 @@ public class PersonAuthorityServiceTest extends AbstractServiceTestImpl { //FIXM
         nonexMap.put(PersonJAXBSchema.GENDER, "male");
         Map<String, List<String>> nonexRepeatablesMap = new HashMap<String, List<String>>();
         PoxPayloadOut multipart = 
-    	PersonAuthorityClientUtils.createPersonInstance(NON_EXISTENT_ID, 
-    			PersonAuthorityClientUtils.createPersonAuthRefName(NON_EXISTENT_ID, null),
+    	PersonAuthorityClientUtils.createPersonInstance( NON_EXISTENT_ID,
+    			PersonAuthorityClientUtils.createPersonAuthRefName(getServiceClientTenantID(), NON_EXISTENT_ID, null),
     			nonexMap, nonexRepeatablesMap, client.getItemCommonPartName() );
         ClientResponse<String> res =
                 client.updateItem(knownResourceId, NON_EXISTENT_ID, multipart);

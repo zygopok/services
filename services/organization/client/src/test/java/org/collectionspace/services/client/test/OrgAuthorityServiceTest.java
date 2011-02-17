@@ -159,9 +159,9 @@ public class OrgAuthorityServiceTest extends AbstractServiceTestImpl { //FIXME: 
         OrgAuthorityClient client = new OrgAuthorityClient();
         String shortId = createIdentifier();
         String displayName = "displayName-" + shortId;
-    	String baseRefName = OrgAuthorityClientUtils.createOrgAuthRefName(shortId, null);
+    	String baseRefName = OrgAuthorityClientUtils.createOrgAuthRefName(getServiceClientTenantID(), shortId, null);
     	PoxPayloadOut multipart = OrgAuthorityClientUtils.createOrgAuthorityInstance(
-    	    		displayName, shortId, client.getCommonPartName());
+    	    		getServiceClientTenantID(), displayName, shortId, client.getCommonPartName());
         
     	String newID = null;
     	ClientResponse<Response> res = client.create(multipart);
@@ -1649,7 +1649,7 @@ public class OrgAuthorityServiceTest extends AbstractServiceTestImpl { //FIXME: 
         // The only relevant ID may be the one used in update(), below.
         OrgAuthorityClient client = new OrgAuthorityClient();
     	PoxPayloadOut multipart = OrgAuthorityClientUtils.createOrgAuthorityInstance(
-    			NON_EXISTENT_ID, NON_EXISTENT_ID, 
+    			getServiceClientTenantID(), NON_EXISTENT_ID, NON_EXISTENT_ID, 
 				new OrgAuthorityClient().getCommonPartName());
         ClientResponse<String> res =
                 client.update(NON_EXISTENT_ID, multipart);
@@ -2177,7 +2177,7 @@ public class OrgAuthorityServiceTest extends AbstractServiceTestImpl { //FIXME: 
      * @param  parentResourceIdentifier  An identifier (such as a UUID) for the
      * parent resource of the relevant item resource.
      *
-     * @param  resourceIdentifier  An identifier (such as a UUID) for an
+     * @param  itemResourceIdentifier  An identifier (such as a UUID) for an
      * item resource.
      *
      * @return The URL of a specific resource managed by a service.

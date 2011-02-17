@@ -239,7 +239,7 @@ public class CollectionObjectAuthRefsTest extends BaseServiceTest {
     private void createPersonAuthority(String displayName, String shortIdentifier) {
         testSetup(STATUS_CREATED, ServiceRequestType.CREATE);
         PersonAuthorityClient personAuthClient = new PersonAuthorityClient();
-    	PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(
+    	PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(getServiceClientTenantID(),
     			displayName, shortIdentifier, personAuthClient.getCommonPartName());
         ClientResponse<Response> res = personAuthClient.create(multipart);
         int statusCode = res.getStatus();
@@ -334,7 +334,7 @@ public class CollectionObjectAuthRefsTest extends BaseServiceTest {
         testSetup(STATUS_CREATED, ServiceRequestType.CREATE);
         OrgAuthorityClient orgAuthClient = new OrgAuthorityClient();
         PoxPayloadOut multipart = OrgAuthorityClientUtils.createOrgAuthorityInstance(
-    			displayName, shortIdentifier, orgAuthClient.getCommonPartName());
+    			getServiceClientTenantID(),displayName, shortIdentifier, orgAuthClient.getCommonPartName());
         ClientResponse<Response> res = orgAuthClient.create(multipart);
         int statusCode = res.getStatus();
 
@@ -551,9 +551,7 @@ public class CollectionObjectAuthRefsTest extends BaseServiceTest {
     * @param title the title
     * @param objNum the obj num
     * @param contentOrganization the content organization
-    * @param contentPeople the content people
     * @param contentPerson the content person
-    * @param inscriber the inscriber
     * @return the multipart output
     */
    private PoxPayloadOut createCollectionObjectInstance(

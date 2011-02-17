@@ -155,10 +155,10 @@ public class OrgAuthorityAuthRefsTest extends BaseServiceTest {
         OrgAuthorityClient orgAuthClient = new OrgAuthorityClient();
         String shortId = createIdentifier();
         String displayName = "TestOrgAuth-" + shortId;
-    	String baseRefName = OrgAuthorityClientUtils.createOrgAuthRefName(shortId, null);
+    	String baseRefName = OrgAuthorityClientUtils.createOrgAuthRefName(getServiceClientTenantID(), shortId, null);
         PoxPayloadOut multipart =
             OrgAuthorityClientUtils.createOrgAuthorityInstance(
-            			displayName, shortId, orgAuthClient.getCommonPartName());
+            			getServiceClientTenantID(), displayName, shortId, orgAuthClient.getCommonPartName());
 
         // Submit the request to the service and store the response.
         ClientResponse<Response> res = orgAuthClient.create(multipart);
@@ -239,7 +239,7 @@ public class OrgAuthorityAuthRefsTest extends BaseServiceTest {
         // Create a temporary PersonAuthority resource, and its corresponding
         // refName by which it can be identified.
     	PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(
-    	    PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
+    	    getServiceClientTenantID(), PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
         
     	ClientResponse<Response> res = personAuthClient.create(multipart);
         try {

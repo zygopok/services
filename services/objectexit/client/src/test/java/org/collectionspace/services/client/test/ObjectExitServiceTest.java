@@ -32,6 +32,7 @@ import org.collectionspace.services.client.ObjectExitClient;
 import org.collectionspace.services.client.PayloadOutputPart;
 import org.collectionspace.services.client.PoxPayloadIn;
 import org.collectionspace.services.client.PoxPayloadOut;
+import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.collectionspace.services.objectexit.ObjectexitCommon;
 
@@ -258,7 +259,12 @@ public class ObjectExitServiceTest extends AbstractServiceTestImpl {
         String identifier = "objectexitNumber-" + exitNumber;
         ObjectexitCommon objectexit = new ObjectexitCommon();
         objectexit.setExitNumber(identifier);
-        objectexit.setDepositor("urn:cspace:org.collectionspace.demo:orgauthority:name(TestOrgAuth):organization:name(Northern Climes Museum)'Northern Climes Museum'");
+        RefName.AuthorityItem borrower = RefName.buildAuthorityItem(getServiceClientTenantID(),
+                                                                RefName.HACK_ORGAUTHORITIES,//"Orgauthorities",
+                                                                "TestOrgAuth",
+                                                                "NorthernClimesMuseum",
+                                                                "Northern Climes Museum");
+        objectexit.setDepositor(borrower.toString());
         PoxPayloadOut multipart = new PoxPayloadOut(ObjectExitClient.SERVICE_PAYLOAD_NAME);
         PayloadOutputPart commonPart = multipart.addPart(objectexit, MediaType.APPLICATION_XML_TYPE);
         commonPart.setLabel(new ObjectExitClient().getCommonPartName());

@@ -128,7 +128,7 @@ public class ObjectExitAuthRefsTest extends BaseServiceTest {
     protected void createPersonRefs() {
         PersonAuthorityClient personAuthClient = new PersonAuthorityClient();
         // Create a temporary PersonAuthority resource, and its corresponding refName by which it can be identified.
-        PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
+        PoxPayloadOut multipart = PersonAuthorityClientUtils.createPersonAuthorityInstance(getServiceClientTenantID(), PERSON_AUTHORITY_NAME, PERSON_AUTHORITY_NAME, personAuthClient.getCommonPartName());
         ClientResponse<Response> res = personAuthClient.create(multipart);
         assertStatusCode(res, "createPersonRefs (not a surefire test)");
         personAuthCSID = extractId(res);

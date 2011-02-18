@@ -38,7 +38,6 @@ import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.collectionspace.services.loanin.LenderGroup;
 import org.collectionspace.services.loanin.LenderGroupList;
 import org.collectionspace.services.loanin.LoansinCommon;
-import org.collectionspace.services.loanin.LoansinCommonList;
 
 import org.jboss.resteasy.client.ClientResponse;
 import org.testng.Assert;
@@ -417,7 +416,6 @@ public class LoaninServiceTest extends AbstractServiceTestImpl {
         }
 
         // Optionally output additional data about list members for debugging.
-        /* TODO: CSPACE-3178.  Somehow this got broken with the pox stuff. so I commented this block out.
         boolean iterateThroughList = false;
         if (iterateThroughList && logger.isDebugEnabled()){
             List<AbstractCommonList.ListItem> items =
@@ -429,8 +427,6 @@ public class LoaninServiceTest extends AbstractServiceTestImpl {
                 i++;
             }
         }
-        */
-
     }
 
     // Failure outcomes

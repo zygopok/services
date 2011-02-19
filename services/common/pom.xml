@@ -15,13 +15,11 @@
     <dependencies>
 
         <!-- CollectionSpace dependencies -->
-        <!--
         <dependency>
             <groupId>org.collectionspace.services</groupId>
             <artifactId>org.collectionspace.services.common-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        -->
         <dependency>
 			<groupId>org.collectionspace.services</groupId>
 			<artifactId>org.collectionspace.services.3rdparty.nuxeo.quote-api</artifactId>        

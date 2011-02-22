@@ -241,7 +241,7 @@
             <dependency>
                <groupId>org.collectionspace.services</groupId>
                <artifactId>org.collectionspace.services.common-api</artifactId>
-               <version>1.4-SNAPSHOT</version>
+               <version>1.5.1</version>
           	</dependency>
             <dependency>
 	            <groupId>org.nuxeo.ecm.core</groupId>

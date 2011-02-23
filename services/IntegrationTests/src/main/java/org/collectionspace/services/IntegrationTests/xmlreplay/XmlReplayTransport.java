@@ -163,6 +163,40 @@ public class XmlReplayTransport {
         return doPOST_PUT(urlString, content, BOUNDARY, method, MULTIPART_MIXED, authForTest, fromTestID); //method is POST or PUT.
     }
 
+    public static ServiceResult doPOST_PUTFromXML_POX(List<String> filesList,
+                                                      List<String> partsList,
+                                                      String protoHostPort,
+                                                      String uri,
+                                                      String method,
+                                                      XmlReplayEval evalStruct,
+                                                      String authForTest,
+                                                      String fromTestID)
+                                                      throws Exception {
+        if (  filesList==null||filesList.size()==0
+            ||partsList==null||partsList.size()==0
+            ||(partsList.size() != filesList.size())){
+            throw new Exception("filesList and partsList must not be empty and must have the same number of items each.");
+        }
+        StringBuffer content = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        content.append(CRLF).append("<document name=\"objectexit\">").append(CRLF);
+        for (int i=0; i<partsList.size(); i++){
+            String fileName = filesList.get(i);
+            String commonPartName = partsList.get(i);
+            byte[] b = FileUtils.readFileToByteArray(new File(fileName));
+            String xmlString = new String(b);
+
+            xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, evalStruct.jexl, evalStruct.jc);
+
+            content.append(xmlString).append(CRLF);
+        }
+        content.append("</document>");
+        String urlString = protoHostPort+uri;
+        String POX_BOUNDARY = "";//empty for POX.
+        return doPOST_PUT(urlString, content.toString(), POX_BOUNDARY, method,
+                          APPLICATION_XML, authForTest, fromTestID); //method is POST or PUT.
+    }
+
+
     /** Use this overload for NON-multipart messages, that is, regular POSTs. */
         public static ServiceResult doPOST_PUTFromXML(String fileName,
                                                                 String protoHostPort,

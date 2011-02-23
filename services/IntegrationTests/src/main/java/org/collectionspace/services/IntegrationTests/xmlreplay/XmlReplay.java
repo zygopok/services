@@ -574,7 +574,12 @@ public class XmlReplay {
                         if (parts.bDoingSinglePartPayload){
                             serviceResult = XmlReplayTransport.doPOST_PUTFromXML(parts.singlePartPayloadFilename, protoHostPort, uri, method, XmlReplayTransport.APPLICATION_XML, evalStruct, authForTest, testIDLabel);
                         } else {
-                            serviceResult = XmlReplayTransport.doPOST_PUTFromXML_Multipart(parts.filesList, parts.partsList, protoHostPort, uri, method, evalStruct, authForTest, testIDLabel);
+                            boolean POX = true;
+                            if (POX){
+                                serviceResult = XmlReplayTransport.doPOST_PUTFromXML_POX      (parts.filesList, parts.partsList, protoHostPort, uri, method, evalStruct, authForTest, testIDLabel);
+                            } else {
+                                serviceResult = XmlReplayTransport.doPOST_PUTFromXML_Multipart(parts.filesList, parts.partsList, protoHostPort, uri, method, evalStruct, authForTest, testIDLabel);
+                            }
                         }
                         results.add(serviceResult);
                         if (isPOST){
@@ -642,10 +647,18 @@ public class XmlReplay {
                     }
 
                     String serviceResultRow = serviceResult.dump(dump.dumpServiceResult);
-                    String leader = (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.detailed) ? "XmlReplay:"+testIDLabel+": ": "";
+                    String leader = (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.detailed) ? "XmlReplay:"+testIDLabel+": ": "\r\n##------xmlreplay------";
                     System.out.println(leader+serviceResultRow+"\r\n");
-                    if (dump.payloads) System.out.println(serviceResult.result);
-                } catch (Throwable t) {
+                    if (dump.payloads && Tools.notBlank(serviceResult.requestPayload)) {
+                        System.out.println("\r\n========== request payload ===============");
+                        System.out.println(serviceResult.requestPayload);
+                        System.out.println("==========================================\r\n");
+                    }
+                    if (dump.payloads && Tools.notBlank(serviceResult.result)) {
+                        System.out.println("\r\n========== response payload ==============");
+                        System.out.println(serviceResult.result);
+                        System.out.println("==========================================\r\n");
+                    }                } catch (Throwable t) {
                     String msg = "ERROR: XmlReplay experienced an error in a test node: "+testNode+" Throwable: "+t;
                     System.out.println(msg);
                     ServiceResult serviceResult = new ServiceResult();

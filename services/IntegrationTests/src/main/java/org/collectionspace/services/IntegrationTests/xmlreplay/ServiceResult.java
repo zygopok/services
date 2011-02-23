@@ -176,6 +176,10 @@ public class ServiceResult {
         return detail(true);
 
     }
+
+    private static final String LINE = "\r\n==================================";
+    private static final String CRLF = "\r\n";
+
     public String detail(boolean includePayloads){
         String res =  "{"
                 + ( gotExpectedResult() ? "SUCCESS" : "FAILURE"  )
@@ -193,12 +197,13 @@ public class ServiceResult {
                 + ( Tools.notEmpty(location) ? "; location.CSID:"+location : "" )
                 + ( Tools.notEmpty(error) ? "; ERROR:"+error : "" )
                 + "; gotExpected:"+gotExpectedResult()
-                + ( includePayloads && Tools.notEmpty(requestPayload) ? "; requestPayload:\r\n"+requestPayload+"\r\n" : "" )
-                + ( includePayloads && Tools.notEmpty(result) ? "; result:"+result : "" )
                 + ( partsSummary(true))
-                +"}";
+                +"}"
+                + ( includePayloads && Tools.notBlank(requestPayload) ? LINE+"requestPayload:"+LINE+CRLF+requestPayload+LINE : "" )
+                + ( includePayloads && Tools.notBlank(result) ? LINE+"result:"+LINE+CRLF+result : "" );
         return res;
     }
+
     public String minimal(){
         return "{"
                 + ( gotExpectedResult() ? "SUCCESS" : "FAILURE"  )

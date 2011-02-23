@@ -63,9 +63,17 @@ public class Tools {
     }
 
     /** Handles null strings as empty.  */
-        public static boolean notEmpty(String str){
+    public static boolean notEmpty(String str){
         if (str==null) return false;
         if (str.length()==0) return false;
+        return true;
+    }
+    public static boolean notBlank(String str){
+        if (str==null) return false;
+        if (str.length()==0) return false;
+        if (str.trim().length()==0){
+            return false;
+        }
         return true;
     }
 

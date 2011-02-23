@@ -36,6 +36,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,29 +130,30 @@ public class XmlReplayTransport {
 
     /** Use this overload for multipart messages. */
     public static ServiceResult doPOST_PUTFromXML_Multipart(List<String> filesList,
-                                                                      List<String> partsList,
-                                                                      String protoHostPort,
-                                                                      String uri,
-                                                                      String method,
-                                                                      XmlReplayEval evalStruct,
-                                                                      String authForTest,
-                                                                      String fromTestID)
-                                                                      throws Exception {
+                                                            List<String> partsList,
+                                                            List<Map<String,String>> varsList,
+                                                            String protoHostPort,
+                                                            String uri,
+                                                            String method,
+                                                            XmlReplayEval evalStruct,
+                                                            String authForTest,
+                                                            String fromTestID)
+                                                             throws Exception {
         if (  filesList==null||filesList.size()==0
             ||partsList==null||partsList.size()==0
             ||(partsList.size() != filesList.size())){
             throw new Exception("filesList and partsList must not be empty and must have the same number of items each.");
         }
         String content = DD + BOUNDARY;
-
+        Map<String, String> contentRaw = new HashMap<String, String>();
         for (int i=0; i<partsList.size(); i++){
             String fileName = filesList.get(i);
             String commonPartName = partsList.get(i);
             byte[] b = FileUtils.readFileToByteArray(new File(fileName));
             String xmlString = new String(b);
 
-            xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, evalStruct.jexl, evalStruct.jc);
-
+            xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, varsList.get(i), evalStruct.jexl, evalStruct.jc);
+            contentRaw.put(commonPartName, xmlString);
             content = content + CRLF + "label: "+commonPartName + CRLF
                               + "Content-Type: application/xml" + CRLF
                               + CRLF
@@ -160,62 +162,68 @@ public class XmlReplayTransport {
         }
         content = content + DD;
         String urlString = protoHostPort+uri;
-        return doPOST_PUT(urlString, content, BOUNDARY, method, MULTIPART_MIXED, authForTest, fromTestID); //method is POST or PUT.
+        return doPOST_PUT(urlString, content, contentRaw, BOUNDARY, method, MULTIPART_MIXED, authForTest, fromTestID); //method is POST or PUT.
     }
 
     public static ServiceResult doPOST_PUTFromXML_POX(List<String> filesList,
-                                                      List<String> partsList,
-                                                      String protoHostPort,
-                                                      String uri,
-                                                      String method,
-                                                      XmlReplayEval evalStruct,
-                                                      String authForTest,
-                                                      String fromTestID)
-                                                      throws Exception {
+                                                        List<String> partsList,
+                                                        List<Map<String,String>> varsList,
+                                                        String protoHostPort,
+                                                        String uri,
+                                                        String method,
+                                                        XmlReplayEval evalStruct,
+                                                        String authForTest,
+                                                        String fromTestID)
+                                                        throws Exception {
         if (  filesList==null||filesList.size()==0
             ||partsList==null||partsList.size()==0
             ||(partsList.size() != filesList.size())){
             throw new Exception("filesList and partsList must not be empty and must have the same number of items each.");
         }
-        StringBuffer content = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        content.append(CRLF).append("<document name=\"objectexit\">").append(CRLF);
+        StringBuffer content = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n");
+        //content.append(CRLF).append("<document name=\"objectexit\">").append(CRLF);
+        Map<String, String> contentRaw = new HashMap<String, String>();
         for (int i=0; i<partsList.size(); i++){
             String fileName = filesList.get(i);
             String commonPartName = partsList.get(i);
             byte[] b = FileUtils.readFileToByteArray(new File(fileName));
             String xmlString = new String(b);
 
-            xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, evalStruct.jexl, evalStruct.jc);
-
+            xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, varsList.get(i), evalStruct.jexl, evalStruct.jc);
+            contentRaw.put(commonPartName, xmlString);
+            
             content.append(xmlString).append(CRLF);
         }
-        content.append("</document>");
+        //content.append("</document>");
         String urlString = protoHostPort+uri;
         String POX_BOUNDARY = "";//empty for POX.
-        return doPOST_PUT(urlString, content.toString(), POX_BOUNDARY, method,
-                          APPLICATION_XML, authForTest, fromTestID); //method is POST or PUT.
+        return doPOST_PUT(urlString, content.toString(), contentRaw, POX_BOUNDARY, method,APPLICATION_XML, authForTest, fromTestID); //method is POST or PUT.
     }
 
 
     /** Use this overload for NON-multipart messages, that is, regular POSTs. */
-        public static ServiceResult doPOST_PUTFromXML(String fileName,
-                                                                String protoHostPort,
-                                                                String uri,
-                                                                String method,
-                                                                String contentType,
-                                                                XmlReplayEval evalStruct,
-                                                                String authForTest,
-                                                                String fromTestID)
+    public static ServiceResult doPOST_PUTFromXML(String fileName,
+                                                      Map<String,String> vars,
+                                                      String protoHostPort,
+                                                      String uri,
+                                                      String method,
+                                                      String contentType,
+                                                      XmlReplayEval evalStruct,
+                                                      String authForTest,
+                                                      String fromTestID)
     throws Exception {
         byte[] b = FileUtils.readFileToByteArray(new File(fileName));
         String xmlString = new String(b);
-        xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, evalStruct.jexl, evalStruct.jc);
+        xmlString = evalStruct.eval(xmlString, evalStruct.serviceResultsMap, vars, evalStruct.jexl, evalStruct.jc);
         String urlString = protoHostPort+uri;
-        return doPOST_PUT(urlString, xmlString, BOUNDARY, method, contentType, authForTest, fromTestID); //method is POST or PUT.
+        Map<String, String> contentRaw = new HashMap<String, String>();
+        contentRaw.put("default", xmlString);
+        return doPOST_PUT(urlString, xmlString, contentRaw, BOUNDARY, method, contentType, authForTest, fromTestID); //method is POST or PUT.
     }
 
 
-    public static ServiceResult doPOST_PUT(String urlString, String content, String boundary, String method, String contentType,
+    public static ServiceResult doPOST_PUT(String urlString, String content, Map<String,String> contentRaw,
+                                           String boundary, String method, String contentType,
                                            String authForTest, String fromTestID) throws Exception {
         ServiceResult result = new ServiceResult();
         result.method = method;
@@ -244,6 +252,7 @@ public class XmlReplayTransport {
 
             try {
                 result.requestPayload = content;
+                result.requestPayloadsRaw = contentRaw;
                 result.responseCode = conn.getResponseCode();
                 //System.out.println("responseCode: "+result.responseCode);
                 if (400 <= result.responseCode && result.responseCode <= 499){

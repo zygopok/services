@@ -30,15 +30,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.collectionspace.services.common.ReflectionMapper;
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.service.ListResultField;
 import org.collectionspace.services.common.service.DocHandlerParams;
 import org.collectionspace.services.common.service.ServiceBindingType;
 import org.collectionspace.services.common.context.MultipartServiceContext;
 import org.collectionspace.services.common.document.DocumentWrapper;
 import org.collectionspace.services.jaxb.AbstractCommonList;
-import org.collectionspace.services.nuxeo.client.java.CommonList;
-import org.collectionspace.services.nuxeo.client.java.RemoteDocumentModelHandlerImpl;
 import org.collectionspace.services.nuxeo.util.NuxeoUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;

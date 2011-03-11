@@ -6,7 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 
@@ -147,7 +147,7 @@ public class XmlReplay {
         return list;
     }
 
-    /** Use this if you wish to named tests within a testGroup, otherwise call runTestGroup(). */
+    /** Use this if you wish to run named tests within a testGroup, otherwise call runTestGroup(). */
     public List<ServiceResult>  runTests(String testGroupID, String testID) throws Exception {
         List<ServiceResult> result = runXmlReplayFile(this.basedir,
                                 this.controlFileName,
@@ -561,6 +561,7 @@ public class XmlReplay {
         evalStruct.jexl = jexl;
 
         for (Node testgroup : testgroupNodes) {
+
             JexlContext jc = new MapContext();  //Get a new JexlContext for each test group.
             evalStruct.jc = jc;
 
@@ -575,7 +576,15 @@ public class XmlReplay {
             int testElementIndex = -1;
 
             for (Node testNode : tests) {
+                long startTime = System.currentTimeMillis();
                 try {
+                    /*try {
+                        //"sleeping 2");
+                        Thread.currentThread().sleep(2);
+                    } catch (InterruptedException ie){
+                        System.out.println("ERROR sleeping: "+ie);
+                    }
+                    */
                     testElementIndex++;
                     String testID = testNode.valueOf("@ID");
                     String testIDLabel = Tools.notEmpty(testID) ? (testGroupID+'.'+testID) : (testGroupID+'.'+testElementIndex);
@@ -711,7 +720,7 @@ public class XmlReplay {
                         serviceResult.failureReason = " : VALIDATION ERROR; ";
                     }
 
-                    String serviceResultRow = serviceResult.dump(dump.dumpServiceResult);
+                    String serviceResultRow = serviceResult.dump(dump.dumpServiceResult)+"; time:"+(startTime-System.currentTimeMillis());
                     String leader = (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.detailed) ? "XmlReplay:"+testIDLabel+": ": "";
                     if (   (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.detailed)
                         || (dump.dumpServiceResult == ServiceResult.DUMP_OPTIONS.full)){

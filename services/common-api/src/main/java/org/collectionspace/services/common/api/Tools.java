@@ -21,7 +21,7 @@
  *  limitations under the License.
  */
 
-package org.collectionspace.services.common;
+package org.collectionspace.services.common.api;
 
 import java.io.File;
 import  java.util.regex.Pattern;
@@ -151,7 +151,18 @@ public class Tools {
         return result;
     }
 
-
+    /** Takes an Exception object and formats a message that provides more debug information
+      * suitable for developers for printing to System.out or for logging.  Not suitable for
+      * presentation of error messages to clients.
+      */
+    public static String errorToString(Throwable e, boolean stackTraceOnException){
+        if (e==null){
+            return "";
+        }
+        String s = e.toString() + "\r\n  -- message: " + e.getMessage();
+        s = s + "\r\n  -- Stack Trace: \r\n  --      " + getStackTrace(e);
+        return s;
+    }
 
 
 }

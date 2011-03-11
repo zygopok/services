@@ -23,6 +23,7 @@
  */
 package org.collectionspace.services.common.vocabulary;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -45,6 +46,7 @@ import javax.ws.rs.core.UriInfo;
 import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.client.PoxPayloadIn;
 import org.collectionspace.services.client.PoxPayloadOut;
+import org.collectionspace.services.common.profile.Profiler;
 import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
 import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
 import org.collectionspace.services.common.vocabulary.nuxeo.AuthorityItemDocumentModelHandler;
@@ -428,6 +430,8 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 
 	}
 
+    private volatile short inst = 0;
+
 	/*************************************************************************
 	 * Create an AuthorityItem - this is a sub-resource of Authority
 	 * @param specifier either a CSID or one of the urn forms
@@ -437,12 +441,15 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	@Path("{csid}/items")
 	public Response createAuthorityItem(@PathParam("csid") String specifier, String xmlPayload) {
 		try {
+            inst++;
+            short localInst = inst;
+            String parentcsid;
+            //HACK for timing: System.out.println("AuthorityResource objid: "+this+" ENTER "+localInst);
 			PoxPayloadIn input = new PoxPayloadIn(xmlPayload);
 			ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = null;
 			ServiceContext<PoxPayloadIn, PoxPayloadOut> parentCtx = null;
 
 			Specifier spec = getSpecifier(specifier, "createAuthorityItem", "CREATE_ITEM");
-			String parentcsid;
 			if(spec.form==SpecifierForm.CSID) {
 				parentcsid = spec.value;
 			} else {
@@ -463,10 +470,34 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
             DocumentHandler handler = createItemDocumentHandler(ctx, parentcsid);
             ((AuthorityItemDocumentModelHandler<?,?>)handler).setAuthorityRefNameBase(parentRefName);
             //CSPACE-3178
-			String itemcsid = getRepositoryClient(ctx).create(ctx, handler);
-			UriBuilder path = UriBuilder.fromResource(resourceClass);
+
+            //HACK test for timing:
+            /*String itemcsid = "ERROR-IN-LOOP";
+            List<String> list = new ArrayList<String>();
+            Profiler profiler = new Profiler("createAuthorityItem", 4);
+			for (int i=0;i<10000;i++){
+                profiler.start();
+                String itemcsidInLoop = getRepositoryClient(ctx).create(ctx, handler);
+                profiler.stop();
+                long time = profiler.getElapsedTime();
+                String msg = itemcsidInLoop+" :: "+time;
+                list.add(msg);
+                itemcsid = itemcsidInLoop;
+                if (i % 100 == 0){
+                    System.out.println("======== IN LOOP: "+msg);
+                }
+            }
+            for (String s: list){
+                System.out.println(s);
+            }
+            */
+            String itemcsid = getRepositoryClient(ctx).create(ctx, handler);
+
+
+            UriBuilder path = UriBuilder.fromResource(resourceClass);
 			path.path(parentcsid + "/items/" + itemcsid);
 			Response response = Response.created(path.build()).build();
+            //HACK for timing: System.out.println("AuthorityResource objid: "+this+" LEAVE "+localInst);
 			return response;
 		} catch (BadRequestException bre) {
 			Response response = Response.status(
@@ -787,8 +818,7 @@ public abstract class AuthorityResource<AuthCommon, AuthCommonList, AuthItemComm
 	 * 
 	 * @param parentspecifier either a CSID or one of the urn forms
 	 * @param itemspecifier either a CSID or one of the urn forms
-	 * @param theUpdate the the update
-	 * 
+	 *
 	 * @return the multipart output
 	 */
 	@PUT

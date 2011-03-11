@@ -160,6 +160,7 @@
         <ant antfile="loanin/build.xml" target="deploy" inheritAll="false"/>
         <ant antfile="loanout/build.xml" target="deploy" inheritAll="false"/>
         <ant antfile="objectexit/build.xml" target="deploy" inheritAll="false"/>
+        <ant antfile="imports/build.xml" target="deploy" inheritAll="false"/>
         <ant antfile="location/build.xml" target="deploy" inheritAll="false"/>
         <ant antfile="media/build.xml" target="deploy" inheritAll="false"/>
         <ant antfile="movement/build.xml" target="deploy" inheritAll="false"/>
@@ -185,6 +186,7 @@
         <ant antfile="acquisition/build.xml" target="undeploy" inheritAll="false"/>
         <ant antfile="location/build.xml" target="undeploy" inheritAll="false"/>
         <ant antfile="objectexit/build.xml" target="undeploy" inheritAll="false"/>
+        <ant antfile="imports/build.xml" target="undeploy" inheritAll="false"/>
         <ant antfile="report/build.xml" target="undeploy" inheritAll="false"/>
         <ant antfile="movement/build.xml" target="undeploy" inheritAll="false"/>
         <ant antfile="loanout/build.xml" target="undeploy" inheritAll="false"/>
@@ -224,6 +226,7 @@
         <ant antfile="loanout/build.xml" target="dist" inheritAll="false"/>
         <ant antfile="location/build.xml" target="dist" inheritAll="false"/>
         <ant antfile="objectexit/build.xml" target="dist" inheritAll="false"/>
+        <ant antfile="imports/build.xml" target="dist" inheritAll="false"/>
         <ant antfile="media/build.xml" target="dist" inheritAll="false"/>
         <ant antfile="movement/build.xml" target="dist" inheritAll="false"/>
         <ant antfile="report/build.xml" target="dist" inheritAll="false"/>

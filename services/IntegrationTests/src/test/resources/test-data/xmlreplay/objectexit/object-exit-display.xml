@@ -27,12 +27,14 @@
                 <var ID="displayName">Finbar the DisplayName</var>
              </vars>
         </test>
-        <!--
         <test ID="oePersonGET">
             <method>GET</method>
             <uri>/cspace-services/personauthorities/${oePersonauthority.CSID}/items/${oePerson.CSID}</uri>
-            <response>
-                <expected level="TREE" />
+            <!--
+            TODO: this response can't be validated because HttpTraffic object doesn't know
+                   how to parse new POX format.
+             <response>
+                <expected level="ADDOK" />
                 <part>
                      <label>persons_common</label>
                      <filename>objectexit/res/oePersonDisplayGET.res.xml</filename>
@@ -40,8 +42,8 @@
                      <var ID="refName">urn:cspace:collectionspace.org:Personauthorities(${oePersonauthority.sent("personauthorities_common","//shortIdentifier")}):items(foobar)'${oePerson.sent("persons_common","//displayName")}'</var>
                  </part>
              </response>
+             -->
         </test>
-        -->
     </testGroup>
 
 </xmlReplay>

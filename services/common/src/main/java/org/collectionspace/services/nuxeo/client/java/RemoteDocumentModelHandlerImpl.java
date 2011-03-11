@@ -23,7 +23,6 @@
  */
 package org.collectionspace.services.nuxeo.client.java;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +34,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.api.RefName;
 import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
 import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
@@ -50,13 +49,8 @@ import org.collectionspace.services.common.document.BadRequestException;
 import org.collectionspace.services.common.document.DocumentUtils;
 import org.collectionspace.services.common.document.DocumentWrapper;
 import org.collectionspace.services.common.document.DocumentFilter;
-import org.collectionspace.services.common.document.DocumentHandler.Action;
 import org.collectionspace.services.common.service.ObjectPartType;
-import org.collectionspace.services.common.vocabulary.RefNameUtils;
 import org.dom4j.Element;
-
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartInput;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -67,7 +61,6 @@ import org.nuxeo.ecm.core.schema.types.Schema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.dom4j.Document;
 
 /**
  * RemoteDocumentModelHandler

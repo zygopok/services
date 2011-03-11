@@ -25,13 +25,12 @@ package org.collectionspace.services.common.vocabulary.nuxeo;
 
 import java.util.Map;
 
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.document.DocumentWrapper;
 import org.collectionspace.services.common.service.ObjectPartType;
 import org.collectionspace.services.common.vocabulary.AuthorityItemJAXBSchema;
 import org.collectionspace.services.common.vocabulary.AuthorityJAXBSchema;
 import org.collectionspace.services.nuxeo.client.java.RemoteDocumentModelHandlerImpl;
-import org.collectionspace.services.nuxeo.util.NuxeoUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 
 /**
@@ -116,6 +115,7 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon, AICommonList>
         if (Tools.isEmpty(shortIdentifier) && Tools.notEmpty(displayName)){
             String cookedShortIdentifier = Tools.squeeze(displayName)+'-'+Tools.now().toString();
             docModel.setProperty(schemaName , AuthorityJAXBSchema.SHORT_IDENTIFIER, cookedShortIdentifier);
+            System.out.println("========= IN "+this.hashCode()+"::"+this+" handleDisplayNameAsShortIdentifier: "+cookedShortIdentifier);
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon, AICommonList>
 
     /**
      * setCommonPart set associated item
-     * @param vocabularyItem
+     * @param item
      */
     @Override
     public void setCommonPart(AICommon item) {

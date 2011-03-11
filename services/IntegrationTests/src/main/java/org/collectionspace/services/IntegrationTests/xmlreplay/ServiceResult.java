@@ -24,7 +24,7 @@
 package org.collectionspace.services.IntegrationTests.xmlreplay;
 
 import org.apache.commons.httpclient.Header;
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 
 import java.util.ArrayList;
 import java.util.HashMap;

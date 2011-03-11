@@ -63,9 +63,9 @@ extends AbstractMultiPartCollectionSpaceResourceImpl {
 	protected WebApplicationException bigReThrow(Exception e,
 			String serviceMsg, String csid) throws WebApplicationException {
 		Response response;
-		if (logger.isDebugEnabled()) {
-			logger.debug(getClass().getName(), e);
-		}
+		//if (logger.isDebugEnabled()) {
+			logger.error(getClass().getName(), e);
+		//}
 		if (e instanceof UnauthorizedException) {
 			response = Response.status(Response.Status.UNAUTHORIZED)
 					.entity(serviceMsg + e.getMessage()).type("text/plain")

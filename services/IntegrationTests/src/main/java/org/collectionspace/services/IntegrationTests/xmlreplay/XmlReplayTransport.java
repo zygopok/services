@@ -40,7 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 
 /**
  *   @author Laramie Crocker
@@ -52,16 +52,20 @@ public class XmlReplayTransport {
         private static String CRLF = "\r\n";
 
     public static ServiceResult doGET(String urlString, String authForTest, String fromTestID) throws Exception {
+        ServiceResult pr = new ServiceResult();
+        pr.fromTestID = fromTestID;
+        pr.method = "GET";
+        //HACK for speed testing.
+        //pr.CSID = "2";
+        //pr.overrideGotExpectedResult();
+        //if (true) return pr;
+        //END-HACK
         HttpClient client = new HttpClient();
         GetMethod getMethod = new GetMethod(urlString);
         getMethod.addRequestHeader("Accept", "multipart/mixed");
         getMethod.addRequestHeader("Accept", "application/xml");
         getMethod.setRequestHeader("Authorization", "Basic " + authForTest); //"dGVzdDp0ZXN0");
         getMethod.setRequestHeader("X-XmlReplay-fromTestID", fromTestID);
-        ServiceResult pr = new ServiceResult();
-
-        pr.fromTestID = fromTestID;
-        pr.method = "GET";
         try {
             int statusCode1 = client.executeMethod(getMethod);
             pr.responseCode = statusCode1;
@@ -227,6 +231,13 @@ public class XmlReplayTransport {
                                            String authForTest, String fromTestID) throws Exception {
         ServiceResult result = new ServiceResult();
         result.method = method;
+        //HACK for speed testing.  Result: XmlReplay takes 9ms to process one test
+        // right up to the point of actually firing an HTTP request.
+        // or ~ 120 records per second.
+        //result.CSID = "2";
+        //result.overrideGotExpectedResult();
+        //if (true) return result;
+        //END-HACK
         try {
             URL url = new URL(urlString);
             HttpURLConnection conn;

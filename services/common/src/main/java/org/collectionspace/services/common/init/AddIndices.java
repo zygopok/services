@@ -17,7 +17,7 @@
  */
 package org.collectionspace.services.common.init;
 
-import org.collectionspace.services.common.Tools;
+import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.service.ServiceBindingType;
 import org.collectionspace.services.common.service.InitHandler.Params.Field;
 import org.collectionspace.services.common.service.InitHandler.Params.Property;

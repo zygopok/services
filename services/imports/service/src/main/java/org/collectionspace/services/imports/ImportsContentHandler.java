@@ -5,6 +5,8 @@ import org.collectionspace.services.common.api.Tools;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.dom4j.io.HTMLWriter;
+import org.dom4j.io.OutputFormat;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
@@ -14,6 +16,9 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 import org.xml.sax.ext.Locator2;
+
+import java.io.StringWriter;
+import java.util.Set;
 
 /**
  * @author Laramie Crocker
@@ -37,7 +42,7 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
             append("<?xml version=\"1.0\"?>\r\n");
             xmlDeclarationDone = true;
         }
-        //System.err.println("Locator getPublicId:"+locator.getPublicId()+" Locator getSystemId: "+locator.getSystemId());
+        //more info available from Locator if needed: locator.getPublicId(), locator.getSystemId();
     }
 
     public void startDocument() throws SAXException {
@@ -45,7 +50,9 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
     }
 
     public void endDocument() throws SAXException {
-        System.out.println("\r\nEND");
+        if (fragmentHandler!=null) {
+            fragmentHandler.onEndDocument(document, fragmentIndex+1);
+        }
     }
 
     public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
@@ -68,13 +75,29 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
             buffer = new StringBuffer();
             inFragment = true;
         }
-        //System.out.println("      ~~~ START currentPath: "+currentPath);
     }
 
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        append("</" + name(qName, localName) + '>');
+        if (inFragment && (inFragmentDepth>0)){
+            append("</" + name(qName, localName) + '>');
+        }
+        if (inFragment && (inFragmentDepth==0)){
+            if (fragmentHandler!=null) {
+                fragmentIndex++;
+                fragmentHandler.onFragmentReady(document, currentElement.getPath(), fragmentIndex, buffer.toString());
+            }
+            inFragment = false;
+            currentElement = previousElement;
+        }
         if (inFragment){
             inFragmentDepth--;
+        }
+    }
+
+    /* Worked, but didn't pop out of currentelement correctly: would give things like /document/schema/schema.
+    public void endElement(String uri, String localName, String qName) throws SAXException {
+        if (inFragment && (inFragmentDepth>0)){
+            append("</" + name(qName, localName) + '>');
         }
         String currentPath = currentElement.getPath();
         //System.out.println("      ~~~ END currentPath: "+currentPath);
@@ -84,9 +107,16 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
             }
             inFragment = false;
         } else {
-            currentElement = previousElement;
+            if (!inFragment){
+                currentElement = previousElement;
+            }
+        }
+        if (inFragment){
+            inFragmentDepth--;
         }
     }
+    */
+
 
     public void characters(char ch[], int start, int length) throws SAXException {
         String chars = new String(ch, start, length);
@@ -138,6 +168,7 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
     private boolean xmlDeclarationDone = false;
     private boolean inFragment = false;
     private int inFragmentDepth = 0;
+    private int fragmentIndex = 0;  //used for informational purposes only, to report to the IFragmentHandler.
 
     private String chopPath = "";
     public String getChopPath() {
@@ -209,6 +240,26 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String prettyPrint(Document document) {
+        String prettyHTML;
+        try {
+            StringWriter swriter = new StringWriter();
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            format.setNewlines(true);
+            format.setTrimText(true);
+            format.setIndent(false);
+            format.setXHTML(true);
+            format.setLineSeparator(System.getProperty("line.separator")) ;
+            HTMLWriter writer = new HTMLWriter(swriter, format);
+            writer.write(document);
+            writer.flush();
+            prettyHTML = swriter.toString();
+        } catch (Exception e){
+            prettyHTML = "<?xml?><error>"+e+"</error>";
+        }
+        return prettyHTML;
     }
 
 }

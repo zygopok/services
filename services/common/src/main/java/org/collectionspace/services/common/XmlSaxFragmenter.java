@@ -1,3 +1,26 @@
+/**
+ *  This document is a part of the source code and related artifacts
+ *  for CollectionSpace, an open source collections management system
+ *  for museums and related institutions:
+
+ *  http://www.collectionspace.org
+ *  http://wiki.collectionspace.org
+
+ *  Copyright 2009 University of California at Berkeley
+
+ *  Licensed under the Educational Community License (ECL), Version 2.0.
+ *  You may not use this file except in compliance with this License.
+
+ *  You may obtain a copy of the ECL 2.0 License at
+
+ *  https://source.collectionspace.org/collection-space/LICENSE.txt
+
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package org.collectionspace.services.common;
 
 import org.collectionspace.services.common.api.Tools;
@@ -20,6 +43,34 @@ import java.io.StringWriter;
 /** Use XmlSaxFragmenter to parse a large file or InputSource (stream)
  *   with SAX, and pass in an instance of IFragmentHandler to parse() so that you can
  *   get fragments back that you can parse with DOM or other processing.
+ *
+ *   You would typically instantiate and run this class like so:
+ *
+ *   IFragmentHandler callback = new MyFragmentHandlerImpl();  //define the interface somewhere.
+ *   XmlSaxFragmenter.parse("C:\\tmp\\imports.xml", "/document/schema", callback);
+ *
+ *   Then, given an XML document like this:
+ *       &lt;document repository="default" id="123">
+ *         &lt;schema name="collectionobjects_naturalhistory">
+ *           &lt;nh-int/>
+ *           &lt;nh-note/>
+ *         &lt;/schema>
+ *         &lt;schema name="collectionobjects_common">
+ *           &lt;remNumber>
+ *             &lt;numberValue/>
+ *             &lt;numberType/>
+ *           &lt;/remNumber>
+ *         &lt;/schema>
+ *       &lt;/document>
+ *
+ *    you'll get two onFragmentReady() events: the first will pass String fragment =
+ *        &lt;schema name="collectionobjects_naturalhistory">            &lt;nh-int/>
+ *        &lt;nh-note/>
+ *    plus some context information, and the second will pass String fragment =
+ *        &lt;remNumber>
+ *          &lt;numberValue/>
+ *          &lt;numberType/>
+ *        &lt;/remNumber>
  *
  * @author Laramie Crocker
  */
@@ -142,7 +193,8 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
     public String getChopPath() {
         return chopPath;
     }
-    public void setChopPath(String chopPath) {
+    /** You should not set the chopPath directly; instead you must set it in the call to parse(). */
+    protected void setChopPath(String chopPath) {
         this.chopPath = chopPath;
     }
 
@@ -150,7 +202,8 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
     public IFragmentHandler getFragmentHandler() {
         return fragmentHandler;
     }
-    public void setFragmentHandler(IFragmentHandler fragmentHandler) {
+    /** You should not set the FragmentHandler directly; instead you must set it in the call to parse(). */
+    protected void setFragmentHandler(IFragmentHandler fragmentHandler) {
         this.fragmentHandler = fragmentHandler;
     }
 
@@ -212,6 +265,14 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
         return prettyHTML;
     }
 
+    /** This method takes a filename of a local file only; InputSource is not implemented yet.
+     *
+     * @param theFileName the filename of a local file, which should be valid XML.
+     * @param chopPath    the path from the root of the document to the parent element
+     *                    of the fragment you want.
+     * @param handler     An instance of IFragmentHandler that you define to get the onFragmentReady event
+     *                    which will give you the fragment and some context information.
+     */
     public static void parse(String theFileName, String chopPath, IFragmentHandler handler){
         try{
             XMLReader parser = XMLReaderFactory.createXMLReader();

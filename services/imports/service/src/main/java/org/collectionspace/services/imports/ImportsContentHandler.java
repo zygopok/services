@@ -51,6 +51,7 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
     public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
         append("<" + name(qName, localName) + attsToStr(atts) + ">");
         if (inFragment){
+            inFragmentDepth++;
             return;
         }
         if (currentElement == null){
@@ -72,15 +73,19 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
 
     public void endElement(String uri, String localName, String qName) throws SAXException {
         append("</" + name(qName, localName) + '>');
+        if (inFragment){
+            inFragmentDepth--;
+        }
         String currentPath = currentElement.getPath();
         //System.out.println("      ~~~ END currentPath: "+currentPath);
-        if (currentPath.equals(chopPath)){
+        if (inFragment && (inFragmentDepth==0) && currentPath.equals(chopPath)){
             if (fragmentHandler!=null) {
                 fragmentHandler.onFragmentReady(document, currentPath, buffer.toString());
             }
             inFragment = false;
+        } else {
+            currentElement = previousElement;
         }
-        currentElement = previousElement;
     }
 
     public void characters(char ch[], int start, int length) throws SAXException {
@@ -132,6 +137,7 @@ public class ImportsContentHandler implements ContentHandler, ErrorHandler {
 
     private boolean xmlDeclarationDone = false;
     private boolean inFragment = false;
+    private int inFragmentDepth = 0;
 
     private String chopPath = "";
     public String getChopPath() {

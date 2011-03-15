@@ -6,7 +6,7 @@
  *  http://www.collectionspace.org
  *  http://wiki.collectionspace.org
 
- *  Copyright 2009 University of California at Berkeley
+ *  Copyright 2011 University of California at Berkeley
 
  *  Licensed under the Educational Community License (ECL), Version 2.0.
  *  You may not use this file except in compliance with this License.
@@ -287,6 +287,9 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
      *                    of the fragment you want.
      * @param handler     An instance of IFragmentHandler that you define to get the onFragmentReady event
      *                    which will give you the fragment and some context information.
+     * @param includeParent  If you set this to true, you will get the element described by chopPath included in the fragment, otherwise,
+     *                       it will not appear in the fragment; in either case, the element will be available in the Document context and the
+     *                       Element fragmentParent in the callback IFragmentHandler.onFragmentReady().
      */
     public static void parse(String theFileName,
                              String chopPath,
@@ -294,12 +297,12 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
                              boolean includeParent){
         try{
             XMLReader parser = XMLReaderFactory.createXMLReader();
-            XmlSaxFragmenter importsHandler = new XmlSaxFragmenter();
-            importsHandler.setChopPath(chopPath);
-            importsHandler.setFragmentHandler(handler);
-            importsHandler.setIncludeParent(includeParent);
-            parser.setContentHandler(importsHandler);
-            parser.setErrorHandler(importsHandler);
+            XmlSaxFragmenter fragmenter = new XmlSaxFragmenter();
+            fragmenter.setChopPath(chopPath);
+            fragmenter.setFragmentHandler(handler);
+            fragmenter.setIncludeParent(includeParent);
+            parser.setContentHandler(fragmenter);
+            parser.setErrorHandler(fragmenter);
             parser.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
             parser.parse(theFileName);
         } catch(Exception e) {

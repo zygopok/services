@@ -1,3 +1,27 @@
+/**
+ *  This document is a part of the source code and related artifacts
+ *  for CollectionSpace, an open source collections management system
+ *  for museums and related institutions:
+
+ *  http://www.collectionspace.org
+ *  http://wiki.collectionspace.org
+
+ *  Copyright 2010 University of California at Berkeley
+
+ *  Licensed under the Educational Community License (ECL), Version 2.0.
+ *  You may not use this file except in compliance with this License.
+
+ *  You may obtain a copy of the ECL 2.0 License at
+
+ *  https://source.collectionspace.org/collection-space/LICENSE.txt
+
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package org.collectionspace.services.common;
 
 import org.collectionspace.services.client.PoxPayloadIn;
@@ -39,7 +63,17 @@ extends AbstractMultiPartCollectionSpaceResourceImpl {
     public static final String LIST   = "list";
 
     //FIXME retrieve client type from configuration
-    final static ClientType CLIENT_TYPE = ServiceMain.getInstance().getClientType();
+    static ClientType CLIENT_TYPE;
+    static {
+         try {
+             // I put this in a try-catch static block instead of file-level static var initializer so that static methods of
+             // *Resource classes may be called statically from test cases.
+             // Without this catch, you can't even access static methods of a *Resource class for testing.
+             CLIENT_TYPE = ServiceMain.getInstance().getClientType();
+         } catch (Throwable t){
+             System.out.println("Static initializer failed in ResourceBase");
+         }
+    }
 
     protected void ensureCSID(String csid, String crudType) throws WebApplicationException {
         if (logger.isDebugEnabled()) {

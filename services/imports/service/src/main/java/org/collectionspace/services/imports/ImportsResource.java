@@ -35,18 +35,26 @@ import org.collectionspace.services.common.api.ZipTools;
 import org.collectionspace.services.common.context.ServiceContext;
 
 // The modified Nuxeo ImportCommand from nuxeo's shell:
+import org.collectionspace.services.common.query.IQueryManager;
 import org.collectionspace.services.imports.nuxeo.ImportCommand;
+import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.ws.Response;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
@@ -86,6 +94,20 @@ public class ImportsResource extends ResourceBase {
         }
     }
 
+
+    /* KRUFT:
+
+      1) here is how you can deal with poxpayloads:
+  	        //PoxPayloadIn input = new PoxPayloadIn(xmlPayload);
+        	//ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext(input);
+      2) here are some notes:
+            //First, save the import request to a local file.
+            // It may be huge. To accept a stream, send it as an upload request; see acceptUpload()
+      3) useful for debugging:
+              System.out.println("\r\n\r\n\r\n=====================\r\n   RUNNING create with xmlPayload: \r\n"+xmlPayload);
+    */
+
+
     public static final String TEMPLATE_DIR = "/src/trunk/services/imports/service/src/main/resources/templates";
 
     /** you can test this with something like:
@@ -99,22 +121,8 @@ public class ImportsResource extends ResourceBase {
         String result;
         javax.ws.rs.core.Response.ResponseBuilder rb;
         try {
-        	//PoxPayloadIn input = new PoxPayloadIn(xmlPayload);
-        	//ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext(input);
-            System.out.println("\r\n\r\n\r\n=====================\r\n   RUNNING create with xmlPayload: \r\n"+xmlPayload);
-
-            //First, save the import request to a local file.
-            // It may be huge. TODO: may have to deal with streams instead of String.
-            // In the process, we must expand the request and wrap it with all kinds of Nuxeo baggage, which expandXmlPayloadToDir knows how to do.
-
-            String outputDir = FileTools.createTmpDir("imports-").getCanonicalPath();
-            expandXmlPayloadToDir(xmlPayload, TEMPLATE_DIR, outputDir);
-
-            //Next, call the nuxeo import service, pointing it to our local directory that has the expanded request.
-            ImportCommand importCommand = new ImportCommand();
-            String destWorkspaces = "/default-domain/workspaces";
-            String report = importCommand.run(outputDir, destWorkspaces);
-            result = "<?xml ?><import><msg>SUCCESS</msg><report></report>"+report+"</import>";
+            InputSource inputSource = payloadToInputSource(xmlPayload);
+            result = createFromInputSource(inputSource);
             rb = javax.ws.rs.core.Response.ok();
 	    } catch (Exception e) {
             result = Tools.errorToString(e, true);
@@ -124,25 +132,48 @@ public class ImportsResource extends ResourceBase {
         return rb.build();
     }
 
-    /** This method may be called statically from outside this class; there is a test call in
-     *   org.collectionspace.services.test.ImportsServiceTest
-     *
-     * @param xmlPayload   A request file has a specific format, you can look at:
+    public static String createFromInputSource(InputSource inputSource) throws Exception {
+        // We must expand the request and wrap it with all kinds of Nuxeo baggage, which expandXmlPayloadToDir knows how to do.
+        String outputDir = FileTools.createTmpDir("imports-").getCanonicalPath();
+        expandXmlPayloadToDir(inputSource, TEMPLATE_DIR, outputDir);
+
+        // Next, call the nuxeo import service, pointing it to our local directory that has the expanded request.
+        ImportCommand importCommand = new ImportCommand();
+        String destWorkspaces = "/default-domain/workspaces";
+        String report = importCommand.run(outputDir, destWorkspaces);
+        String result = "<?xml ?><import><msg>SUCCESS</msg><report></report>"+report+"</import>";
+        return result;
+    }
+
+
+    /**  @param xmlPayload   A request file has a specific format, you can look at:
      *      trunk/services/imports/service/src/test/resources/requests/authority-request.xml
-     * @param templateDir  The local directory where templates are to be found at runtime.
-     * @param outputDir    The local directory where expanded files and directories are found, ready to be passed to the Nuxeo importer.
      */
-    public static void expandXmlPayloadToDir(String xmlPayload, String templateDir, String outputDir) throws Exception {
+    protected static InputSource payloadToInputSource(String xmlPayload) throws Exception {
         String requestDir = FileTools.createTmpDir("imports-request-").getCanonicalPath();
         File requestFile = FileTools.saveFile(requestDir, "request.xml", xmlPayload, true);
         if (requestFile == null){
             throw new FileNotFoundException("Could not create file in requestDir: "+requestDir);
         }
         String requestFilename = requestFile.getCanonicalPath();
+        InputSource inputSource = new InputSource(requestFilename);
         System.out.println("############## REQUEST_FILENAME: "+requestFilename);
+        return inputSource;
+    }
+
+    /** This method may be called statically from outside this class; there is a test call in
+     *   org.collectionspace.services.test.ImportsServiceTest
+     *
+     * @param inputSource   A wrapper around a request file, either a local file or a stream;
+     *      the file has a specific format, you can look at:
+     *      trunk/services/imports/service/src/test/resources/requests/authority-request.xml
+     * @param templateDir  The local directory where templates are to be found at runtime.
+     * @param outputDir    The local directory where expanded files and directories are found, ready to be passed to the Nuxeo importer.
+     */
+    public static void expandXmlPayloadToDir(InputSource inputSource, String templateDir, String outputDir) throws Exception {
         System.out.println("############## TEMPLATE_DIR: "+templateDir);
         System.out.println("############## OUTPUT_DIR:"+outputDir);
-        TemplateExpander.expand(templateDir, outputDir, requestFilename, "/imports/import");
+        TemplateExpander.expandInputSource(templateDir, outputDir, inputSource, "/imports/import");
     }
 
     /** you can test like this:
@@ -151,9 +182,10 @@ public class ImportsResource extends ResourceBase {
     @POST
     @Consumes("multipart/form-data")
     @Produces("application/xml")
-    public javax.ws.rs.core.Response acceptZip(@Context HttpServletRequest req,
+    public javax.ws.rs.core.Response acceptUpload(@Context HttpServletRequest req,
     		                                   MultipartFormDataInput partFormData) {
     	javax.ws.rs.core.Response response = null;
+        StringBuffer resultBuf = new StringBuffer();
     	try {
     		InputStream fileStream = null;
     		String preamble = partFormData.getPreamble();
@@ -163,31 +195,46 @@ public class ImportsResource extends ResourceBase {
     		for (InputPart part : fileParts){
                 String mediaType = part.getMediaType().toString();
                 System.out.println("Media type is:" + mediaType);
-    			if ( ! mediaType.equalsIgnoreCase("application/zip")){
+                if (mediaType.equalsIgnoreCase("text/xml")){
+                    InputSource inputSource = new InputSource(part.getBody(InputStream.class, null));
+                    String result = createFromInputSource(inputSource);
+                    resultBuf.append(result);
                     continue;
                 }
-    			fileStream = part.getBody(InputStream.class, null);
+    			if (mediaType.equalsIgnoreCase("application/zip")){
+                    fileStream = part.getBody(InputStream.class, null);
 
-    			File zipfile = FileUtils.createTmpFile(fileStream, getServiceName() + "_");
-                String zipfileName = zipfile.getCanonicalPath();
-                System.out.println("Media saved to:" + zipfileName);
+                    File zipfile = FileUtils.createTmpFile(fileStream, getServiceName() + "_");
+                    String zipfileName = zipfile.getCanonicalPath();
+                    System.out.println("Imports zip file saved to:" + zipfileName);
 
-                String baseOutputDir = FileTools.createTmpDir("imports-").getCanonicalPath();
-                File indir = new File(baseOutputDir+"/in");
-                indir.mkdir();
-                ZipTools.unzip(zipfileName, indir.getCanonicalPath());
-                System.out.println("Zipfile " + zipfileName + "extracted to: " + indir.getCanonicalPath());
+                    String baseOutputDir = FileTools.createTmpDir("imports-").getCanonicalPath();
+                    File indir = new File(baseOutputDir+"/in");
+                    indir.mkdir();
+                    ZipTools.unzip(zipfileName, indir.getCanonicalPath());
+                    String result = "\r\n<zipResult>Zipfile " + zipfileName + "extracted to: " + indir.getCanonicalPath()+"</zipResult>";
+                    System.out.println(result);
 
-                long start = System.currentTimeMillis();
-                //TODO: now call import service...
+                    long start = System.currentTimeMillis();
+                    //TODO: now call import service...
+                    resultBuf.append(result);
+                    continue;
+                }
     		}
 	    	javax.ws.rs.core.Response.ResponseBuilder rb = javax.ws.rs.core.Response.ok();
-	    	rb.entity("File accepted.");
+	    	rb.entity(resultBuf.toString());
 	    	response = rb.build();
     	} catch (Exception e) {
     		throw bigReThrow(e, ServiceMessages.CREATE_FAILED);
     	}
 		return response;
     }
-    
+
+    String page = "<html><body><form enctype='multipart/form-data' action='/cspace-services/imports?type=xml' method='POST'>"
+                + "Choose a file to import: <input name='file' type='file' /><br /><input type='submit' value='Upload File' /></form></body></html>";
+    @GET
+    @Produces("text/html")
+	public String getInputForm(@QueryParam("form") String form) {
+        return page;
+	}
 }

@@ -107,7 +107,8 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
     }
 
     public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-        append("<" + name(qName, localName) + attsToStr(atts) + ">");
+        String attsString = attsToStr(atts);
+        append("<" + name(qName, localName) + attsString + ">");
         if (inFragment){
             inFragmentDepth++;
             return;
@@ -125,11 +126,16 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
         if (currentPath.equals(chopPath)){
             buffer = new StringBuffer();
             inFragment = true;
+            if (includeParent){
+                append("<" + name(qName, localName) + attsString + ">");
+            }
         }
     }
 
     public void endElement(String uri, String localName, String qName) throws SAXException {
         if (inFragment && (inFragmentDepth>0)){
+            append("</" + name(qName, localName) + '>');
+        } else if (inFragment && inFragmentDepth == 0 && includeParent){
             append("</" + name(qName, localName) + '>');
         }
         if (inFragment && (inFragmentDepth==0)){
@@ -197,6 +203,15 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
     protected void setChopPath(String chopPath) {
         this.chopPath = chopPath;
     }
+
+    private boolean includeParent = false;
+    public boolean isIncludeParent() {
+        return includeParent;
+    }
+    public void setIncludeParent(boolean includeParent) {
+        this.includeParent = includeParent;
+    }
+
 
     private IFragmentHandler fragmentHandler;
     public IFragmentHandler getFragmentHandler() {
@@ -273,12 +288,16 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
      * @param handler     An instance of IFragmentHandler that you define to get the onFragmentReady event
      *                    which will give you the fragment and some context information.
      */
-    public static void parse(String theFileName, String chopPath, IFragmentHandler handler){
+    public static void parse(String theFileName,
+                             String chopPath,
+                             IFragmentHandler handler,
+                             boolean includeParent){
         try{
             XMLReader parser = XMLReaderFactory.createXMLReader();
             XmlSaxFragmenter importsHandler = new XmlSaxFragmenter();
             importsHandler.setChopPath(chopPath);
             importsHandler.setFragmentHandler(handler);
+            importsHandler.setIncludeParent(includeParent);
             parser.setContentHandler(importsHandler);
             parser.setErrorHandler(importsHandler);
             parser.setFeature("http://xml.org/sax/features/namespace-prefixes", true);

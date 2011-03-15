@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -22,19 +24,21 @@ import org.nuxeo.runtime.services.streaming.FileSource;
 
 public class LoggedXMLDirectoryReader extends AbstractDocumentReader {
 
-    protected static Document loadXML(File file) throws IOException {
+    protected Document loadXML(File file) throws IOException {
         String filename = file.getCanonicalPath();
         System.out.println("~~~~~~~~~~~~~~~~~~~ LoggedXMLDirectoryReader :: "+filename);
         BufferedInputStream in = null;
         try {
             in = new BufferedInputStream(new FileInputStream(file));
             System.out.println("~~~~~~~~~~~~~~~~~~~ LoggedXMLDirectoryReader :: "+filename+" :: DONE");
+            reportList.add("READ: "+filename);
             return new SAXReader().read(in);
         } catch (DocumentException e) {
             IOException ioe = new IOException("Failed to read file document "
                     + file + ": " + e.getMessage());
             ioe.setStackTrace(e.getStackTrace());
             System.out.println("~~~~~~~~~~~~~~~~~~~ LoggedXMLDirectoryReader :: "+filename+" :: ERROR");
+            reportList.add("ERROR: "+filename);
             throw ioe;
         } finally {
             if (in != null) {
@@ -74,6 +78,16 @@ public class LoggedXMLDirectoryReader extends AbstractDocumentReader {
         iterator = null;
     }
 
+    private List<String> reportList = new ArrayList<String>();
+    public String report(){
+        StringBuffer result = new StringBuffer();
+        for (String s: reportList){
+            result.append(s).append("\r\n");
+        }
+        return result.toString();
+    }
+
+
     @Override
     public ExportedDocument read() throws IOException {
         if (iterator.hasNext()) {
@@ -89,9 +103,9 @@ public class LoggedXMLDirectoryReader extends AbstractDocumentReader {
                     if (ExportConstants.DOCUMENT_FILE.equals(name)) {
                         Document doc = loadXML(file);
                         xdoc.setDocument(doc);
-                        /*NXP-1688 Rux: the path was somehow left over when migrated from
-                          core 1.3.4 to 1.4.0. Pull back.*/
-                        xdoc.setPath(computeRelativePath(dir));
+                        Path relPath = computeRelativePath(dir);
+                        xdoc.setPath(relPath);
+                        reportList.add(relPath.toString());
                     } else if (name.endsWith(".xml")) {
                         xdoc.putDocument(
                                 FileUtils.getFileNameNoExt(file.getName()),

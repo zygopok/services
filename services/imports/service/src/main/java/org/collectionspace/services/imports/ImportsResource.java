@@ -93,7 +93,8 @@ public class ImportsResource extends ResourceBase {
         try {
         	//PoxPayloadIn input = new PoxPayloadIn(xmlPayload);
         	//ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext(input);
-
+            String dir = "C:/tmp/imports-resource";
+            expandXmlPayloadToDir(xmlPayload, dir);
             ImportCommand importCommand = new ImportCommand();
             String src = "/data/doco/JIRAs/3560/importtmpl/out"; //Local dir with ./Personauthorities/
             String dest = "/default-domain/workspaces";
@@ -107,9 +108,20 @@ public class ImportsResource extends ResourceBase {
         }
         rb.entity(result);
         return rb.build();
-
     }
 
+    public static final String REL_DIR_TO_MODULE = "./src/main/resources/templates";
+
+    public static void expandXmlPayloadToDir(String xmlPayload, String dir) throws Exception {
+        String filename = REL_DIR_TO_MODULE;
+        String templateDir = (new File(filename)).getCanonicalPath();
+        TemplateExpander.doOnePersonauthority(templateDir,
+                                              templateDir+"/out",
+                                              "personauthorities-part.xml",
+                                              "authority.xml");
+
+
+    }
 
     /** you can test like this:
      * curl -F "file=@out.zip;type=application/zip" --basic -u "Admin@collectionspace.org:Administrator" http://localhost:8280/cspace-services/imports

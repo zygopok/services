@@ -70,8 +70,9 @@ extends AbstractMultiPartCollectionSpaceResourceImpl {
              // *Resource classes may be called statically from test cases.
              // Without this catch, you can't even access static methods of a *Resource class for testing.
              CLIENT_TYPE = ServiceMain.getInstance().getClientType();
+             //System.out.println("Static initializer in ResourceBase. CLIENT_TYPE:"+CLIENT_TYPE);
          } catch (Throwable t){
-             System.out.println("Static initializer failed in ResourceBase");
+             System.out.println("Static initializer failed in ResourceBase because not running from deployment.  OK to use Resource classes statically for tests.");
          }
     }
 

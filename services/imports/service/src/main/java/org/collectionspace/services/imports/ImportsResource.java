@@ -23,44 +23,32 @@
  */
 package org.collectionspace.services.imports;
 
-import org.collectionspace.services.client.PoxPayloadIn;
-import org.collectionspace.services.client.PoxPayloadOut;
 import org.collectionspace.services.common.FileUtils;
 import org.collectionspace.services.common.ResourceBase;
 import org.collectionspace.services.common.ServiceMessages;
-import org.collectionspace.services.common.XmlSaxFragmenter;
 import org.collectionspace.services.common.api.FileTools;
 import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.api.ZipTools;
-import org.collectionspace.services.common.context.ServiceContext;
 
 // The modified Nuxeo ImportCommand from nuxeo's shell:
-import org.collectionspace.services.common.query.IQueryManager;
 import org.collectionspace.services.imports.nuxeo.ImportCommand;
-import org.collectionspace.services.jaxb.AbstractCommonList;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.ws.Response;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author Laramie Crocker

@@ -39,6 +39,10 @@ import org.xml.sax.InputSource;
 
 /** This class expands templates specifically for the imports service.
  *
+ *  To see capability to create workspaces, see svn revision 4346 on branch
+ *  https://source.collectionspace.org/collection-space/src/services/branches/CSPACE-3178/services
+ *  This capability was removed, as it was necessary for testing only.
+ *
  * @author Laramie Crocker
  */
 public class TemplateExpander {
@@ -71,6 +75,7 @@ public class TemplateExpander {
         wrapperTmpl = Tools.searchAndReplace(wrapperTmpl, var("docID"), docID);
         wrapperTmpl = Tools.searchAndReplace(wrapperTmpl, var("ServiceType"), SERVICE_TYPE);
         wrapperTmpl = Tools.searchAndReplace(wrapperTmpl, var("ServiceName"), SERVICE_NAME);
+        //TODO: set timestamp via creating a ${created} variable.
 
         String serviceDir = outDir+'/'+docID;
         FileTools.saveFile(serviceDir, "document.xml", wrapperTmpl, true/*true=create parent dirs*/);
@@ -85,7 +90,8 @@ public class TemplateExpander {
      * @param partTmpl  A template file that contains the schema part for the service, and which has macros such as ${docID} to be expanded.
      * @param SERVICE_NAME The name of the service, such as "Personauthorities"
      * @param SERVICE_TYPE The Nuxeo document type, such as "Personauthority"
-     * @param TEMPLATE_DIR The local filesystem location of all the standard templates that wrap up workspace documents; once expanded, these spit out Nuxeo import format.
+     * @param TEMPLATE_DIR The local filesystem location of all the standard templates that wrap up workspace documents;
+     *                     once expanded, these spit out Nuxeo import format.
      * @param CSID An optional parameter which forces the document CSID, otherwise the CSID is set to a random UUID.
      * @throws Exception
      */
@@ -98,25 +104,6 @@ public class TemplateExpander {
         String wrapperTmpl = FileTools.readFile(TEMPLATE_DIR,"service-document.xml");
         String outputDir = OUTPUT_DIR+'/'+SERVICE_NAME;
         doOneService(outputDir, partTmpl, wrapperTmpl, SERVICE_TYPE, SERVICE_NAME, CSID);
-    }
-
-    /**  Call this method before calling createDocInWorkspace(), to make a directory such as "Personauthorities/" to receive documents
-     *   for that service.
-     *
-     *   Internally, this method also gets called by the XmlSaxFragmenter callback via the public inner class FragmentHandlerImpl.
-     *
-     * @param SERVICE_NAME The name of the service, such as "Personauthorities"
-     * @param TEMPLATE_DIR The local filesystem location of all the standard templates that wrap up workspace documents; once expanded, these spit out Nuxeo import format.
-     * @throws Exception
-     */
-    public static void createWorkspace(String SERVICE_NAME, String TEMPLATE_DIR, String OUT_DIR) throws Exception {
-        //TODO: set timestamp via creating a ${created} variable.
-        String workspaceDoc = TEMPLATE_DIR+'/'+"workspace-document.xml";
-        String serviceDir = OUT_DIR+'/'+SERVICE_NAME;
-        FileTools.copyFile(workspaceDoc, serviceDir+"/document.xml", true);  //copy the template to the workspace
-        String serviceDoc = FileTools.readFile(serviceDir, "/document.xml");  //now read the copy
-        serviceDoc = TemplateExpander.searchAndReplaceVar(serviceDoc, "ServiceName", SERVICE_NAME);   //now expand macros in the copy
-        FileTools.saveFile(serviceDir, "document.xml", serviceDoc, true);     //save the expanded copy in place.
     }
 
     public static void expand(String TEMPLATE_DIR, String outputDir, String requestFilename, String chopPath){
@@ -132,26 +119,18 @@ public class TemplateExpander {
     /** This inner class is the callback target for calls to XmlSaxFragmenter, for example:
      *     FragmentHandlerImpl callback = new FragmentHandlerImpl();
      *     XmlSaxFragmenter.parse(filename, "/imports/import", callback, false);
-     *  It will be called for every /imports/import in the file, and each of those elements specify either
-     *  service documents:
+     *  It will be called for every /imports/import in the file:
      *      &lt;import ID="1" service="Personauthorities" type="Personauthority">
-     *  or workspaces:
-     *      &lt;import ID="0" workspace="Personauthorities" />
      */
     public static class FragmentHandlerImpl implements IFragmentHandler {
         //============IFragmentHandler===========================================================
         public void onFragmentReady(Document context, Element fragmentParent, String currentPath, int fragmentIndex, String fragment){
             try {
                 dump(context, currentPath, fragmentIndex, fragment);
-                String workspace = fragmentParent.attributeValue("workspace");
-                if (Tools.notEmpty(workspace)){
-                    TemplateExpander.createWorkspace(workspace, TEMPLATE_DIR, OUPUT_DIR);//workspace is the serviceName
-                }else {
-                    String serviceName = checkAttribute(fragmentParent, "service", SERVICE_NAME);
-                    String serviceType = checkAttribute(fragmentParent, "type", SERVICE_TYPE);
-                    String CSID  = fragmentParent.attributeValue("CSID");
-                    TemplateExpander.createDocInWorkspace(fragment, serviceName, serviceType, TEMPLATE_DIR, OUPUT_DIR, CSID);
-                }
+                String serviceName = checkAttribute(fragmentParent, "service", SERVICE_NAME);
+                String serviceType = checkAttribute(fragmentParent, "type", SERVICE_TYPE);
+                String CSID  = fragmentParent.attributeValue("CSID");
+                TemplateExpander.createDocInWorkspace(fragment, serviceName, serviceType, TEMPLATE_DIR, OUPUT_DIR, CSID);
             } catch (Exception e){
                 System.err.println("ERROR calling expandXmlPayloadToDir"+e);
                 e.printStackTrace();

@@ -33,6 +33,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.restlet.util.Template;
 import org.testng.annotations.Test;
+import org.xml.sax.InputSource;
 
 import java.io.File;
 
@@ -49,9 +50,10 @@ public class ImportsServiceTest {
     public void testImports() throws Exception {
         String TEMPLATE_DIR = (new File(TEMPLATES_REL_DIR_TO_MODULE)).getCanonicalPath();
         String REQUESTS_DIR = (new File(REQUESTS_REL_DIR_TO_MODULE)).getCanonicalPath();
-
         String outputDir = FileTools.createTmpDir("imports-test-").getCanonicalPath();
+
         String xmlPayload = FileTools.readFile(REQUESTS_DIR,"authority-request.xml");
-        ImportsResource.expandXmlPayloadToDir(xmlPayload, TEMPLATE_DIR, outputDir);
+        InputSource inputSource = ImportsResource.payloadToInputSource(xmlPayload);
+        ImportsResource.expandXmlPayloadToDir(inputSource, TEMPLATE_DIR, outputDir);
     }
 }

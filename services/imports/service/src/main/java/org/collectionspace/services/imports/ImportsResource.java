@@ -145,11 +145,10 @@ public class ImportsResource extends ResourceBase {
         return result;
     }
 
-
     /**  @param xmlPayload   A request file has a specific format, you can look at:
      *      trunk/services/imports/service/src/test/resources/requests/authority-request.xml
      */
-    protected static InputSource payloadToInputSource(String xmlPayload) throws Exception {
+    public static InputSource payloadToInputSource(String xmlPayload) throws Exception {
         String requestDir = FileTools.createTmpDir("imports-request-").getCanonicalPath();
         File requestFile = FileTools.saveFile(requestDir, "request.xml", xmlPayload, true);
         if (requestFile == null){

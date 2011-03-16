@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <imports>
     <import ID="0" workspace="CollectionObjects" />
-    <import ID="1" service="CollectionObjects" type="Personauthority">
+    <import ID="1" service="CollectionObjects" type="CollectionObject">
         <schema xmlns:collectionobjects_naturalhistory="http://collectionspace.org/collectionobject/" name="collectionobjects_naturalhistory">
             <collectionobjects_naturalhistory:nh-int/>
             <collectionobjects_naturalhistory:nh-note/>
@@ -10,6 +10,7 @@
             <collectionobjects_naturalhistory:nh-date/>
          </schema>
          <schema xmlns:collectionobjects_common="http://collectionspace.org/collectionobject/" name="collectionobjects_common">
+            <collectionobjects_common:assocCulturalContextGroupListNONEXISTENT/>
             <collectionobjects_common:assocCulturalContextGroupList/>
             <collectionobjects_common:assocObjectGroupList/>
             <collectionobjects_common:assocEventNameType></collectionobjects_common:assocEventNameType>
@@ -36,7 +37,6 @@
               </technicalAttributeGroup>
             </collectionobjects_common:technicalAttributeGroupList>
             <collectionobjects_common:inscriptionDescriptionInterpretation>No Idea</collectionobjects_common:inscriptionDescriptionInterpretation>
-            <collectionobjects_common:referenceGroupList/>
             <collectionobjects_common:dateText/>
             <collectionobjects_common:ownershipDates></collectionobjects_common:ownershipDates>
             <collectionobjects_common:dimensionSummary/>
@@ -159,7 +159,6 @@
             <collectionobjects_common:fieldColEventNames>
               <fieldColEventName>fieldCollectionEventName</fieldColEventName>
             </collectionobjects_common:fieldColEventNames>
-            <collectionobjects_common:objectStatusList/>
             <collectionobjects_common:inscriptionContentInscriber>urn:cspace:org.collectionspace.demo:orgauthority:name(organization):organization:name(screenmagicinc.)'Screen+Magic+Inc.'</collectionobjects_common:inscriptionContentInscriber>
             <collectionobjects_common:contentPersons>
               <contentPerson>urn:cspace:org.collectionspace.demo:personauthority:name(person):person:name(gingerrogers)'Ginger+Rogers'</contentPerson>

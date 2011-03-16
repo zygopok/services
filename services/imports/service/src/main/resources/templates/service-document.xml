@@ -1,9 +1,3 @@
-<!-- this format assumes that the workspace documents and folders are in place:
-   ./Personauthorities/
-   ./Personauthorities/document.xml
-   ./Persons/
-   ./Persons/document.xml
--->   
 <document repository="default" id="${docID}">
   <system>
     <type>${ServiceType}</type>

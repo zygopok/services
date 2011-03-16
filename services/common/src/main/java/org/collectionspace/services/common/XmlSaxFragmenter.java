@@ -32,6 +32,7 @@ import org.dom4j.io.OutputFormat;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -296,6 +297,28 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
                              IFragmentHandler handler,
                              boolean includeParent){
         try{
+            XMLReader parser = setupParser(chopPath, handler, includeParent);
+            parser.parse(theFileName);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void parse(InputSource inputSource,
+                             String chopPath,
+                             IFragmentHandler handler,
+                             boolean includeParent){
+        try{
+            XMLReader parser = setupParser(chopPath, handler, includeParent);
+            parser.parse(inputSource);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected static XMLReader setupParser(String chopPath,
+                                      IFragmentHandler handler,
+                                      boolean includeParent) throws Exception {
             XMLReader parser = XMLReaderFactory.createXMLReader();
             XmlSaxFragmenter fragmenter = new XmlSaxFragmenter();
             fragmenter.setChopPath(chopPath);
@@ -304,10 +327,7 @@ public class XmlSaxFragmenter implements ContentHandler, ErrorHandler {
             parser.setContentHandler(fragmenter);
             parser.setErrorHandler(fragmenter);
             parser.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-            parser.parse(theFileName);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+            return parser;
     }
 
 }

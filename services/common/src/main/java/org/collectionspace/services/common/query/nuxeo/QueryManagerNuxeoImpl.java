@@ -38,6 +38,7 @@ import org.nuxeo.ecm.core.client.NuxeoClient;
 
 import org.collectionspace.services.jaxb.InvocableJAXBSchema;
 import org.collectionspace.services.nuxeo.client.java.NuxeoConnector;
+import org.collectionspace.services.nuxeo.client.java.NxConnect;
 import org.collectionspace.services.client.IQueryManager;
 import org.collectionspace.services.common.invocable.Invocable;
 import org.collectionspace.services.common.invocable.InvocableUtils;
@@ -94,7 +95,7 @@ public class QueryManagerNuxeoImpl implements IQueryManager {
 	public void execQuery(String queryString) {
 		NuxeoClient client = null;
 		try {
-			client = NuxeoConnector.getInstance().getClient();
+			client = NxConnect.getInstance().getClient();
 			RepositoryInstance repoSession = client.openRepository();
 
 			DocumentModelList docModelList = repoSession

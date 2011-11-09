@@ -55,7 +55,8 @@ public class SecurityUtils {
      */
     public static String createPasswordHash(String username, String password) {
         //TODO: externalize digest algo and encoding
-        return org.jboss.security.Util.createPasswordHash("SHA-256", //digest algo
+    	
+        return org.jboss.security.auth.spi.Util.createPasswordHash("SHA-256", //digest algo
                 "base64", //encoding
                 null, //charset
                 username,

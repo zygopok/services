@@ -27,6 +27,7 @@ import org.collectionspace.services.common.types.PropertyItemType;
 import org.collectionspace.services.common.types.PropertyType;
 import org.collectionspace.services.nuxeo.client.java.DocHandlerBase;
 import org.collectionspace.services.nuxeo.client.java.NuxeoConnector;
+import org.collectionspace.services.nuxeo.client.java.NxConnect;
 import org.collectionspace.services.nuxeo.client.java.TenantRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class ServiceMain {
      */
     private static volatile ServiceMain instance = null;
     final Logger logger = LoggerFactory.getLogger(ServiceMain.class);
-    private NuxeoConnector nuxeoConnector;
+    private NxConnect nuxeoConnector;
     private String serverRootDir = null;
     private ServicesConfigReaderImpl servicesConfigReader;
     private TenantBindingConfigReaderImpl tenantBindingConfigReader;
@@ -104,7 +105,7 @@ public class ServiceMain {
         }
 
         if (getClientType().equals(ClientType.JAVA)) {
-            nuxeoConnector = NuxeoConnector.getInstance();
+            nuxeoConnector = NxConnect.getInstance();
             nuxeoConnector.initialize(getServicesConfigReader().getConfiguration().getRepositoryClient());
         }
     }
@@ -602,7 +603,7 @@ public class ServiceMain {
     /**
      * @return the nuxeoConnector
      */
-    public NuxeoConnector getNuxeoConnector() {
+    public NxConnect getNuxeoConnector() {
         return nuxeoConnector;
     }
     

@@ -4,6 +4,7 @@ import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.collectionspace.services.nuxeo.client.java.NuxeoConnector;
+import org.collectionspace.services.nuxeo.client.java.NxConnect;
 import org.nuxeo.ecm.core.api.repository.RepositoryInstance;
 import org.nuxeo.ecm.core.client.NuxeoClient;
 import org.nuxeo.ecm.core.io.DocumentPipe;
@@ -20,7 +21,7 @@ public class ImportCommand {
     public String run(String src, String dest) throws Exception {
         File file = new File(src);
         ///cspace way of configuring client and auth:
-        NuxeoClient client = NuxeoConnector.getInstance().getClient();
+        NuxeoClient client = NxConnect.getInstance().getClient();
         RepositoryInstance  repository = client.openRepository();
         try {
             return importTree(repository, file, dest);

@@ -760,7 +760,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
 
     @Override
     public Hashtable<String, String> retrieveWorkspaceIds(String domainName) throws Exception {
-        return NuxeoConnector.getInstance().retrieveWorkspaceIds(domainName);
+        return NxConnect.getInstance().retrieveWorkspaceIds(domainName);
     }
 
     @Override
@@ -905,7 +905,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
         // Authentication failures happen while trying to reuse the session
     	Profiler profiler = new Profiler("getRepositorySession():", 2);
     	profiler.start();
-        NuxeoClient client = NuxeoConnector.getInstance().getClient();
+        NuxeoClient client = NxConnect.getInstance().getClient();
         RepositoryInstance repoSession = client.openRepository();
         if (logger.isTraceEnabled()) {
             logger.debug("getRepository() repository root: " + repoSession.getRootDocument());
@@ -921,7 +921,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
      */
     private void releaseRepositorySession(RepositoryInstance repoSession) {
         try {
-            NuxeoClient client = NuxeoConnector.getInstance().getClient();
+            NuxeoClient client = NxConnect.getInstance().getClient();
             // release session
             client.releaseRepository(repoSession);
         } catch (Exception e) {

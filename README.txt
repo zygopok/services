@@ -1,2 +1,1 @@
-This change should only appear in the trunk.  Currently r1624.  This is another test of the patching mechanism.
-Changed, 20101018
+This change should only appear in the branch at https://source.collectionspace.org/collection-space/src/services/branches/jboss-5-1-and-nuxeo-5-4-2/

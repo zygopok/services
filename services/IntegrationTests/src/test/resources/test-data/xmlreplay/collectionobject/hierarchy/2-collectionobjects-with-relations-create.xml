@@ -29,8 +29,7 @@
                 <documentType>CollectionObject</documentType>
             </subject>
             <object>
-                <csid>${parentCSID}</csid>
-                <documentType>CollectionObject</documentType>
+                <refName>urn:cspace:core.collectionspace.org:collectionobjects:id(${parentCSID})'${parentObjectNumber}'</refName>
             </object>
         </relation-list-item>
         

@@ -17,7 +17,6 @@
  */
 package org.collectionspace.services.common.storage;
 
-import org.collectionspace.services.common.ServiceMain;
 import org.collectionspace.services.common.api.Tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +24,9 @@ import org.slf4j.LoggerFactory;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.security.auth.login.LoginException;
 import javax.sql.DataSource;
 import java.sql.DatabaseMetaData;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -41,12 +38,14 @@ import java.util.HashMap;
  */
 public class JDBCTools {
 	public static HashMap<String, DataSource> cachedDataSources = new HashMap<String, DataSource>();
-    public static String CSPACE_REPOSITORY_NAME = "CspaceDS";
-    public static String NUXEO_REPOSITORY_NAME = "NuxeoDS";
+    public static String CSPACE_DATASOURCE_NAME = "CspaceDS";
+    public static String NUXEO_DATASOURCE_NAME = "NuxeoDS";
+    // Default database names
+    public static String DEFAULT_CSPACE_DATABASE_NAME = "cspace";
+    public static String DEFAULT_NUXEO_REPOSITORY_NAME = "nuxeo";
     //
     // Private constants
     //
-    private static String DEFAULT_REPOSITORY_NAME = NUXEO_REPOSITORY_NAME;
     private static String DBProductName = null;
     private static DatabaseProductType DBProductType = DatabaseProductType.UNRECOGNIZED;
 
@@ -54,73 +53,84 @@ public class JDBCTools {
     final static Logger logger = LoggerFactory.getLogger(JDBCTools.class);
     private static String JDBC_URL_DATABASE_SEPARATOR = "\\/";
         
-    public static DataSource getDataSource(String repositoryName) throws NamingException {
+    public static DataSource getDataSource(String dataSourceName) throws NamingException {
     	DataSource result = null;
     	
     	//
     	// First, see if we already have this DataSource instance cached
     	//
-    	result = cachedDataSources.get(repositoryName);
+    	result = cachedDataSources.get(dataSourceName);
     	if (result == null) {    	
         	InitialContext ctx = new InitialContext();
         	Context envCtx = null;
 
         	if (logger.isDebugEnabled() == true) {
-	        	logger.debug("Looking up DataSource instance in JNDI with name: " + repositoryName);
+	        	logger.debug("Looking up DataSource instance in JNDI with name: " + dataSourceName);
 	        }
 	            	
 	    	try {
 		        envCtx = (Context) ctx.lookup("java:comp/env");
-		        DataSource ds = (DataSource) envCtx.lookup("jdbc/" + repositoryName);
+		        DataSource ds = (DataSource) envCtx.lookup("jdbc/" + dataSourceName);
 		        if (ds == null) {
-		            throw new IllegalArgumentException("DataSource instance not found: " + repositoryName);
+		            throw new IllegalArgumentException("DataSource instance not found: " + dataSourceName);
 		        } else {
 		        	result = ds;
 		        	// now cache this DataSource instance for future references
-		        	cachedDataSources.put(repositoryName, result);
+		        	cachedDataSources.put(dataSourceName, result);
 		        }
 	    	} finally {
 	            if (ctx != null) {
 	                try {
 	                    ctx.close();
 	                } catch (Exception e) {
-	                	logger.error("Error getting DataSource for: " + repositoryName, e);
+	                	logger.error("Error getting DataSource for: " + dataSourceName, e);
 	                }
 	            }
 	            if (envCtx != null) {
 	                try {
 	                	envCtx.close();
 	                } catch (Exception e) {
-	                	logger.error("Error getting DataSource for: " + repositoryName, e);
+	                	logger.error("Error getting DataSource for: " + dataSourceName, e);
 	                }
 	            }
 	    	}
     	}
     	
+    	if (result != null) {
+//    		DataSource resultClone = result.
+    	}
+    	
     	return result;
     }
     
-    /*
-     * This is a wrapper around DataSource's getConnectionMethod -mainly exists modularize all connection related code to JDBCTool class.
-     */
-    public static Connection getConnection(DataSource dataSource) throws SQLException {
-    	Connection result = null;
-    	result = dataSource.getConnection();
-    	return result;
-    }
-
-    public static Connection getConnection(String repositoryName) throws NamingException, SQLException {
+    public static Connection getConnection(String dataSourceName, String repositoryName) throws NamingException, SQLException {
     	Connection result = null;
     	
-    	if (Tools.isEmpty(repositoryName)) {
-            repositoryName = getDefaultRepositoryName();
-            if (logger.isWarnEnabled() == true) {
-            	logger.warn("getConnection() method was called with an empty or null repository name.  Using " + repositoryName + " instead.");
-            }
+    	if (Tools.isEmpty(repositoryName) || Tools.isEmpty(repositoryName)) {
+    		String errMsg = String.format(
+    				"The getConnection() method was called with an empty or null repository name = '%s' and/or data source name = '%s'.", 
+    				dataSourceName, repositoryName);
+            logger.error(errMsg);
+            throw new NamingException(errMsg);
         }
         
-        DataSource ds = getDataSource(repositoryName);
-        Connection conn = getConnection(ds);
+    	/*
+    	 * We synch this block as a workaround to not have separate DataSource instances for
+    	 * each Nuxeo repo/DB.  Ideally, we should replace the need for this synch block by
+    	 * registering a separate DataSource for each repo/db at init/start-up time.
+    	 * 
+    	 * We need to sync because we're changing the URL of the datasource inorder to get the correct
+    	 * connection.  The synch prevents different threads from getting the incorrect connection -i.e., one pointing
+    	 * to the wrong URL.
+    	 */
+    	Connection conn = null;
+    	synchronized (JDBCTools.class) {
+    		org.apache.commons.dbcp.BasicDataSource dataSource = 
+    				(org.apache.commons.dbcp.BasicDataSource)getDataSource(repositoryName);
+	        String url = dataSource.getUrl();
+	        conn = dataSource.getConnection();
+    	}
+    	
         result = conn;
         
         return result;
@@ -158,11 +168,11 @@ public class JDBCTools {
         }
     } */
 
-    public static int executeUpdate(DataSource dataSource, String sql) throws Exception {
+    public static int executeUpdate(String dataSourceName, String repositoryName, String sql) throws Exception {
         Connection conn = null;
         Statement stmt = null;
         try {
-            conn = getConnection(dataSource);
+            conn = getConnection(dataSourceName, repositoryName);
             stmt = conn.createStatement();
             int rows = stmt.executeUpdate(sql);
             stmt.close();
@@ -209,12 +219,16 @@ public class JDBCTools {
      * @return the database product name
      */
     public static String getDatabaseProductName() {
-    	if(DBProductName==null) {
+    	if (DBProductName == null) {
 	        Connection conn = null;
 	        try {
-	            conn = getConnection(getDefaultRepositoryName()); //FIXME: REM - getDefaultRepositoryName returns the Nuxeo repo name -we should be using the "cspace" repo name
+	            conn = getConnection(CSPACE_DATASOURCE_NAME, DEFAULT_CSPACE_DATABASE_NAME);
 	            DBProductName = conn.getMetaData().getDatabaseProductName();
 	        } catch (Exception e) {
+	        	if (logger.isTraceEnabled() == true) {
+	        		logger.trace(String.format("Could not open a connection. DataSource='%s' DB='%s'.",
+	        				CSPACE_DATASOURCE_NAME, DEFAULT_CSPACE_DATABASE_NAME));
+	        	}
 	        } finally {
 	            try {
 	                if (conn != null) {
@@ -226,6 +240,7 @@ public class JDBCTools {
 	            }
 	        }
     	}
+    	
         return DBProductName;
     }
 
@@ -249,10 +264,6 @@ public class JDBCTools {
 	        }
     	}
         return DBProductType;
-    }
-
-    private static String getDefaultRepositoryName() {
-        return DEFAULT_REPOSITORY_NAME;
     }
     
     /**

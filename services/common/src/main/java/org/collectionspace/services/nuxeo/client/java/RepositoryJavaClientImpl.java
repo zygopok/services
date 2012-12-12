@@ -48,6 +48,7 @@ import org.collectionspace.services.common.document.DocumentHandler.Action;
 import org.collectionspace.services.common.document.DocumentWrapper;
 import org.collectionspace.services.common.document.DocumentWrapperImpl;
 import org.collectionspace.services.common.document.TransactionException;
+import org.collectionspace.services.config.tenant.RepositoryDomainType;
 
 import org.nuxeo.common.utils.IdUtils;
 import org.nuxeo.ecm.core.api.ClientException;
@@ -1194,19 +1195,24 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
     }
 
     @Override
-    public Hashtable<String, String> retrieveWorkspaceIds(String domainName) throws Exception {
-        return NuxeoConnectorEmbedded.getInstance().retrieveWorkspaceIds(domainName);
+    public Hashtable<String, String> retrieveWorkspaceIds(RepositoryDomainType repoDomain) throws Exception {
+        return NuxeoConnectorEmbedded.getInstance().retrieveWorkspaceIds(repoDomain);
     }
 
     @Override
-    public String createDomain(String domainName) throws Exception {
+    public String createDomain(RepositoryDomainType repositoryDomain) throws Exception {
         RepositoryInstance repoSession = null;
         String domainId = null;
         try {
         	//
+        	// Open a connection to the domain's repo/db
+        	//
+        	String repoName = repositoryDomain.getRepositoryName();
+            repoSession = getRepositorySession(repoName); // domainName=storageName=repoName=databaseName
+        	//
         	// First create the top-level domain directory
         	//
-            repoSession = getRepositorySession(null);
+        	String domainName = repositoryDomain.getStorageName();
             DocumentRef parentDocRef = new PathRef("/");
             DocumentModel parentDoc = repoSession.getDocument(parentDocRef);
             DocumentModel domainDoc = repoSession.createDocumentModel(parentDoc.getPathAsString(),
@@ -1238,7 +1244,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
             }
         } catch (Exception e) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Could not create tenant domain name=" + domainName + " caught exception ", e);
+                logger.debug("Could not create tenant domain name=" + repositoryDomain.getStorageName() + " caught exception ", e);
             }
             throw e;
         } finally {
@@ -1251,20 +1257,21 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
     }
 
     @Override
-    public String getDomainId(String domainName) throws Exception {
+    public String getDomainId(RepositoryDomainType repositoryDomain) throws Exception {
         String domainId = null;
         RepositoryInstance repoSession = null;
         
-        if (domainName != null && !domainName.isEmpty()) {
+        String repoName = repositoryDomain.getRepositoryName();
+        String domainStorageName = repositoryDomain.getStorageName();
+        if (domainStorageName != null && !domainStorageName.isEmpty()) {
 	        try {
-	            repoSession = getRepositorySession(null);
-	            DocumentRef docRef = new PathRef(
-	                    "/" + domainName);
+	            repoSession = getRepositorySession(repoName);
+	            DocumentRef docRef = new PathRef("/" + domainStorageName);
 	            DocumentModel domain = repoSession.getDocument(docRef);
 	            domainId = domain.getId();
 	        } catch (Exception e) {
 	            if (logger.isTraceEnabled()) {
-	                logger.trace("Caught exception ", e);
+	                logger.trace("Caught exception ", e);  // The document doesn't exist, this let's us know we need to create it
 	            }
 	            //there is no way to identify if document does not exist due to
 	            //lack of typed exception for getDocument method
@@ -1312,16 +1319,18 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
      * @see org.collectionspace.services.common.repository.RepositoryClient#createWorkspace(java.lang.String, java.lang.String)
      */
     @Override
-    public String createWorkspace(String domainName, String workspaceName) throws Exception {
+    public String createWorkspace(RepositoryDomainType repositoryDomain, String workspaceName) throws Exception {
         RepositoryInstance repoSession = null;
         String workspaceId = null;
         try {
-            repoSession = getRepositorySession(null);
-            DocumentModel parentDoc = getWorkspacesRoot(repoSession, domainName);
+        	String repoName = repositoryDomain.getRepositoryName();
+            repoSession = getRepositorySession(repoName);
             
+            String domainStorageName = repositoryDomain.getStorageName();
+            DocumentModel parentDoc = getWorkspacesRoot(repoSession, domainStorageName);
             if (logger.isTraceEnabled()) {
 	            for (String facet : parentDoc.getFacets()) {
-	            	logger.debug("Facet: " + facet);
+	            	logger.trace("Facet: " + facet);
 	            }
             }
             
@@ -1354,12 +1363,13 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
      * @see org.collectionspace.services.common.repository.RepositoryClient#getWorkspaceId(java.lang.String, java.lang.String)
      */
     @Override
+    @Deprecated
     public String getWorkspaceId(String tenantDomain, String workspaceName) throws Exception {
         String workspaceId = null;
         
         RepositoryInstance repoSession = null;
         try {
-            repoSession = getRepositorySession(null);
+            repoSession = getRepositorySession((ServiceContext)null);
             DocumentRef docRef = new PathRef(
                     "/" + tenantDomain
                     + "/" + NuxeoUtils.Workspaces
@@ -1382,14 +1392,21 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
         return workspaceId;
     }
 
-
+    public RepositoryInstance getRepositorySession(ServiceContext ctx) throws Exception {
+    	return getRepositorySession(ctx, null);
+    }
+    
+    public RepositoryInstance getRepositorySession(String repoName) throws Exception {
+    	return getRepositorySession(null, repoName);
+    }
+    
     /**
      * Gets the repository session. - Package access only.
      *
      * @return the repository session
      * @throws Exception the exception
      */
-    public RepositoryInstance getRepositorySession(ServiceContext ctx) throws Exception {
+    public RepositoryInstance getRepositorySession(ServiceContext ctx, String repoName) throws Exception {
     	RepositoryInstance repoSession = null;
     	
     	Profiler profiler = new Profiler("getRepositorySession():", 2);
@@ -1407,7 +1424,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
         // If we couldn't find a repoSession from the service context then we need to create a new one
         if (repoSession == null) {
 	        NuxeoClientEmbedded client = NuxeoConnectorEmbedded.getInstance().getClient();
-	        repoSession = client.openRepository();
+	        repoSession = client.openRepository(repoName);
         }
         
         if (logger.isTraceEnabled()) {

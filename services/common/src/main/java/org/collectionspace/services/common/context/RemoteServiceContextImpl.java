@@ -27,7 +27,11 @@ import java.lang.reflect.Constructor;
 import javax.ws.rs.core.UriInfo;
 
 import org.collectionspace.services.common.ResourceMap;
+import org.collectionspace.services.common.ServiceMain;
+import org.collectionspace.services.common.config.ConfigUtils;
 import org.collectionspace.services.common.security.UnauthorizedException;
+import org.collectionspace.services.config.service.ServiceBindingType;
+import org.collectionspace.services.config.tenant.TenantBindingType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +112,18 @@ public class RemoteServiceContextImpl<IT, OT>
         }
     }
 
+    /*
+     * Returns the name of the resource's/service's acting repository
+     */
+    public String getRepositoryName() {
+    	String result = null;
+    	
+    	TenantBindingType tenantBindingType = ServiceMain.getInstance().getTenantBindingConfigReader().getTenantBinding(this.getTenantId());
+    	ServiceBindingType serviceBindingType = this.getServiceBinding();
+    	result = ConfigUtils.getRepositoryName(tenantBindingType, serviceBindingType.getRepositoryDomain());
+    	return result;
+    }
+    
     /* (non-Javadoc)
      * @see org.collectionspace.services.common.context.AbstractServiceContextImpl#getInput()
      */

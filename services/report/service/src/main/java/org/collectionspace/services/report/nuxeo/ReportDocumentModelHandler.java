@@ -70,7 +70,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ReportDocumentModelHandler extends DocHandlerBase<ReportsCommon> {
     private final Logger logger = LoggerFactory.getLogger(ReportDocumentModelHandler.class);
-    private static String REPOSITORY_NAME = JDBCTools.NUXEO_REPOSITORY_NAME;
     private static String REPORTS_FOLDER = "reports";
     private static String CSID_LIST_SEPARATOR = ",";
     
@@ -261,7 +260,8 @@ public class ReportDocumentModelHandler extends DocHandlerBase<ReportsCommon> {
     }
 
     private Connection getConnection() throws NamingException, SQLException {
-    	return JDBCTools.getConnection(REPOSITORY_NAME);
+    	ServiceContext ctx = this.getServiceContext();
+    	return JDBCTools.getConnection(JDBCTools.NUXEO_DATASOURCE_NAME, ctx.getRepositoryName());
     }
 
 }

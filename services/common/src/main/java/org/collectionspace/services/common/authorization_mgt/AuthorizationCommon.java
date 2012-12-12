@@ -202,7 +202,7 @@ public class AuthorizationCommon {
     }
     
     private static Connection getConnection() throws NamingException, SQLException {
-        return JDBCTools.getConnection(JDBCTools.CSPACE_REPOSITORY_NAME);
+        return JDBCTools.getConnection(JDBCTools.CSPACE_DATASOURCE_NAME, JDBCTools.DEFAULT_CSPACE_DATABASE_NAME);
     }
     
     /*

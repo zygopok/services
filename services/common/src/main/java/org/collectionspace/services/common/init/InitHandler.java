@@ -50,7 +50,8 @@ public class InitHandler implements IInitHandler {
      * @throws Exception
      */
     @Override
-    public void onRepositoryInitialized(DataSource dataSource,
+    public void onRepositoryInitialized(String dataSourceName,
+    		String repositoryName,
     		ServiceBindingType sbt, 
     		List<Field> fields, 
     		List<Property> properties) throws Exception {

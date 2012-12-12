@@ -85,7 +85,7 @@ public abstract class AbstractServiceContextImpl<IT, OT>
     private TenantBindingType tenantBinding;
     /** repository domain used by the service */
     private RepositoryDomainType repositoryDomain;
-    /** The override document type. */
+	/** The override document type. */
     private String overrideDocumentType = null;
     /** The val handlers. */
     private List<ValidatorHandler<IT, OT>> valHandlers = null;
@@ -673,4 +673,14 @@ public abstract class AbstractServiceContextImpl<IT, OT>
 		// TODO Auto-generated method stub
 		return currentRepositorySession;
 	}	
+
+	@Override	
+	public RepositoryDomainType getRepositoryDomain() {
+		return repositoryDomain;
+	}
+
+	@Override	
+	public void setRepositoryDomain(RepositoryDomainType repositoryDomain) {
+		this.repositoryDomain = repositoryDomain;
+	}
 }

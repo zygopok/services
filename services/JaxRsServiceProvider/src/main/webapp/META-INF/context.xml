@@ -70,6 +70,6 @@
     <Resource name="jdbc/NuxeoDS" auth="Container" type="javax.sql.DataSource"
     	username="${db.user}" password="${db.user.password}"
     	driverClassName="${db.jdbc.driver.class}"
-        url="jdbc:${db}://${db.host}:${db.port}/nuxeo"
+        url="jdbc:${db}://${db.host}:${db.port}/${DatabaseName}"
         maxActive="8" maxIdle="4"/>
 </Context>

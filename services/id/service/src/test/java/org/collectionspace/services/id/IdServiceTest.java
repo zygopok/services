@@ -20,7 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.collectionspace.services.client.test;
+package org.collectionspace.services.id;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 
 import org.collectionspace.services.client.CollectionSpaceClient;
 import org.collectionspace.services.client.IdClient;
+import org.collectionspace.services.client.test.AbstractServiceTestImpl;
 import org.collectionspace.services.common.document.BadRequestException;
 import org.collectionspace.services.common.document.DocumentNotFoundException;
 import org.collectionspace.services.id.IDGeneratorSerializer;

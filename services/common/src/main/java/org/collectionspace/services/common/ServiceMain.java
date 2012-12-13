@@ -235,15 +235,15 @@ public class ServiceMain {
 					final String NUXEO_HIERARCHY_TABLE_NAME = "hierarchy";
 			
 					Map<Integer, List<String>> fieldsToIndex = new HashMap<Integer, List<String>>();
-					fieldsToIndex.put(1, new ArrayList(Arrays.asList(COLLECTIONSPACE_CORE_TABLE_NAME, "tenantid")));
-					fieldsToIndex.put(2, new ArrayList(Arrays.asList(COLLECTIONSPACE_CORE_TABLE_NAME, "updatedat")));
-					fieldsToIndex.put(3, new ArrayList(Arrays.asList(NUXEO_FULLTEXT_TABLE_NAME, "jobid")));
-					fieldsToIndex.put(4, new ArrayList(Arrays.asList(NUXEO_HIERARCHY_TABLE_NAME, "name")));
+					fieldsToIndex.put(1, new ArrayList<String>(Arrays.asList(COLLECTIONSPACE_CORE_TABLE_NAME, "tenantid")));
+					fieldsToIndex.put(2, new ArrayList<String>(Arrays.asList(COLLECTIONSPACE_CORE_TABLE_NAME, "updatedat")));
+					fieldsToIndex.put(3, new ArrayList<String>(Arrays.asList(NUXEO_FULLTEXT_TABLE_NAME, "jobid")));
+					fieldsToIndex.put(4, new ArrayList<String>(Arrays.asList(NUXEO_HIERARCHY_TABLE_NAME, "name")));
 			
 					// Invoke existing post-init code to create these indexes,
 					// sending in the set of values above, in contrast to
 					// drawing these values from per-tenant configuration.
-					DataSource dataSource = JDBCTools.getDataSource(repositoryName);
+//					DataSource dataSource = JDBCTools.getDataSource(JDBCTools.NUXEO_DATASOURCE_NAME);
 					AddIndices addindices = new AddIndices();
 					List<Field> fields = new ArrayList<Field>();
 					for (Map.Entry<Integer, List<String>> entry : fieldsToIndex.entrySet()) {

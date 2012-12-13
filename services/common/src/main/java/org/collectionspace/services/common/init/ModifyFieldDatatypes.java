@@ -67,7 +67,7 @@ public class ModifyFieldDatatypes extends InitHandler implements IInitHandler {
                     + " for repository domain " + sbt.getRepositoryDomain().trim() + "...");
         }
         try {
-            DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType();
+            DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType(dataSourceName, repositoryName);
             String datatype = "";
             for (Field field : fields) {
                 datatype = getDatatypeFromLogicalType(databaseProductType, field.getType());
@@ -164,14 +164,16 @@ public class ModifyFieldDatatypes extends InitHandler implements IInitHandler {
         try {
             conn = JDBCTools.getConnection(dataSourceName, repositoryName);
             stmt = conn.createStatement();
+            String databaseName = JDBCTools.getDatabaseName(dataSourceName, repositoryName, conn);
+            
             if (databaseProductType == DatabaseProductType.MYSQL) {
                 sql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
-                    + "WHERE TABLE_SCHEMA = '" + JDBCTools.getDatabaseName(conn) + "'"
+                    + "WHERE TABLE_SCHEMA = '" + databaseName + "'"
                     + " AND TABLE_NAME = '" + getTableName(field) + "'"
                     + " AND COLUMN_NAME = '" + field.getCol() + "'";
             } else if (databaseProductType == DatabaseProductType.POSTGRESQL) {
                 sql = "SELECT data_type FROM information_schema.columns "
-                    + "WHERE table_catalog = '" + JDBCTools.getDatabaseName(conn) + "'"
+                    + "WHERE table_catalog = '" + databaseName + "'"
                     + " AND table_name = '" + getTableName(field) + "'"
                     + " AND column_name = '" + field.getCol() + "'";
             }

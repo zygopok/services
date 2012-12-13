@@ -42,15 +42,16 @@ public class JDBCTools {
     public static String NUXEO_DATASOURCE_NAME = "NuxeoDS";
     // Default database names
     public static String DEFAULT_CSPACE_DATABASE_NAME = "cspace";
-    public static String DEFAULT_NUXEO_REPOSITORY_NAME = "nuxeo";
+    public static String DEFAULT_NUXEO_REPOSITORY_NAME = "default";
+    public static String DEFAULT_NUXEO_DATABASE_NAME = "nuxeo";
     //
     // Private constants
     //
     private static String DBProductName = null;
-    private static DatabaseProductType DBProductType = DatabaseProductType.UNRECOGNIZED;
 
     //todo: make sure this will get instantiated in the right order
     final static Logger logger = LoggerFactory.getLogger(JDBCTools.class);
+	private static final CharSequence URL_DATABASE_NAME = "${DatabaseName}";
     private static String JDBC_URL_DATABASE_SEPARATOR = "\\/";
         
     public static DataSource getDataSource(String dataSourceName) throws NamingException {
@@ -106,13 +107,21 @@ public class JDBCTools {
     public static Connection getConnection(String dataSourceName, String repositoryName) throws NamingException, SQLException {
     	Connection result = null;
     	
-    	if (Tools.isEmpty(repositoryName) || Tools.isEmpty(repositoryName)) {
+    	if (Tools.isEmpty(dataSourceName) || Tools.isEmpty(repositoryName)) {
     		String errMsg = String.format(
     				"The getConnection() method was called with an empty or null repository name = '%s' and/or data source name = '%s'.", 
     				dataSourceName, repositoryName);
             logger.error(errMsg);
             throw new NamingException(errMsg);
         }
+    	
+    	//
+    	// *Special Case* - Nuxeo's default repository name is "default" but the database is called "nuxeo"
+    	//
+    	if (dataSourceName.equals(JDBCTools.NUXEO_DATASOURCE_NAME) &&
+    			repositoryName.equals(JDBCTools.DEFAULT_NUXEO_REPOSITORY_NAME)) {
+    		repositoryName = DEFAULT_NUXEO_DATABASE_NAME;
+    	}
         
     	/*
     	 * We synch this block as a workaround to not have separate DataSource instances for
@@ -125,10 +134,18 @@ public class JDBCTools {
     	 */
     	Connection conn = null;
     	synchronized (JDBCTools.class) {
-    		org.apache.commons.dbcp.BasicDataSource dataSource = 
-    				(org.apache.commons.dbcp.BasicDataSource)getDataSource(repositoryName);
-	        String url = dataSource.getUrl();
-	        conn = dataSource.getConnection();
+    		org.apache.tomcat.dbcp.dbcp.BasicDataSource dataSource = 
+    				(org.apache.tomcat.dbcp.dbcp.BasicDataSource)getDataSource(dataSourceName);
+    		// Get the template URL value from the JNDI datasource and substitute the databaseName
+	        String urlTemplate = dataSource.getUrl();
+	        String connectionUrl = urlTemplate.replace(URL_DATABASE_NAME, repositoryName);
+        	dataSource.setUrl(connectionUrl);
+	        
+	        try {
+	        	conn = dataSource.getConnection();
+	        } finally {
+	        	dataSource.setUrl(urlTemplate); // Reset the data source URL value back to the template value
+	        }
     	}
     	
         result = conn;
@@ -251,19 +268,21 @@ public class JDBCTools {
      * @return an enumerated value identifying the database product type
      * @throws Exception 
      */
-    public static DatabaseProductType getDatabaseProductType() throws Exception {
-    	if(DBProductType == DatabaseProductType.UNRECOGNIZED) {
-	        String productName = getDatabaseProductName();
-	        if (productName.matches("(?i).*mysql.*")) {
-	        	DBProductType = DatabaseProductType.MYSQL;
-	        } else if (productName.matches("(?i).*postgresql.*")) {
-	        	DBProductType = DatabaseProductType.POSTGRESQL;
-	        } else {
-	            throw new Exception("Unrecognized database system " 
-	            					+ productName);
-	        }
-    	}
-        return DBProductType;
+    public static DatabaseProductType getDatabaseProductType(String dataSourceName,
+    		String repositoryName) throws Exception {
+    	DatabaseProductType result = DatabaseProductType.UNRECOGNIZED;
+    	
+        String productName = getDatabaseProductName();
+        if (productName.matches("(?i).*mysql.*")) {
+        	result = DatabaseProductType.MYSQL;
+        } else if (productName.matches("(?i).*postgresql.*")) {
+        	result = DatabaseProductType.POSTGRESQL;
+        } else {
+            throw new Exception("Unrecognized database system " 
+            					+ productName);
+        }
+    	
+        return result;
     }
     
     /**
@@ -273,26 +292,29 @@ public class JDBCTools {
      * @return the catalog name.
      * @throws SQLException 
      */
-    public static String getDatabaseName(Connection conn) throws Exception {
-        String databaseName = "";
-        if (conn == null) {
-            return databaseName;
-        }
-        DatabaseMetaData metadata = conn.getMetaData();
-        String urlStr = metadata.getURL();
+    public static String getDatabaseName(String dataSourceName,
+    		String repositoryName,
+    		Connection conn) throws Exception {
+        String databaseName = null;
         
-        // Format of the PostgreSQL JDBC URL:
-        // http://jdbc.postgresql.org/documentation/80/connect.html
-        if (getDatabaseProductType() == DatabaseProductType.POSTGRESQL) {
-            String tokens[] = urlStr.split(JDBC_URL_DATABASE_SEPARATOR);
-            databaseName = tokens[tokens.length - 1];
-            // Format of the MySQL JDBC URL:
-            // http://dev.mysql.com/doc/refman/5.1/en/connector-j-reference-configuration-properties.html
-            // FIXME: the last token could contain optional parameters, not accounted for here.
-        } else if (getDatabaseProductType() == DatabaseProductType.MYSQL) {
-            String tokens[] = urlStr.split(JDBC_URL_DATABASE_SEPARATOR);
-            databaseName = tokens[tokens.length - 1];
+        if (conn != null) {
+	        DatabaseMetaData metadata = conn.getMetaData();
+	        String urlStr = metadata.getURL();
+	        
+	        // Format of the PostgreSQL JDBC URL:
+	        // http://jdbc.postgresql.org/documentation/80/connect.html
+	        if (getDatabaseProductType(dataSourceName, repositoryName) == DatabaseProductType.POSTGRESQL) {
+	            String tokens[] = urlStr.split(JDBC_URL_DATABASE_SEPARATOR);
+	            databaseName = tokens[tokens.length - 1];
+	            // Format of the MySQL JDBC URL:
+	            // http://dev.mysql.com/doc/refman/5.1/en/connector-j-reference-configuration-properties.html
+	            // FIXME: the last token could contain optional parameters, not accounted for here.
+	        } else if (getDatabaseProductType(dataSourceName, repositoryName) == DatabaseProductType.MYSQL) {
+	            String tokens[] = urlStr.split(JDBC_URL_DATABASE_SEPARATOR);
+	            databaseName = tokens[tokens.length - 1];
+	        }
         }
+        
         return databaseName;
     }
 

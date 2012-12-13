@@ -409,6 +409,8 @@ public final class NuxeoClientEmbedded {
     }
 
     public RepositoryInstance openRepository(String repoName, int timeoutSeconds) throws Exception {
+    	RepositoryInstance result = null;
+    	
     	if (timeoutSeconds > 0) {
     		TransactionManager transactionMgr = TransactionHelper.lookupTransactionManager();
     		transactionMgr.setTransactionTimeout(timeoutSeconds);
@@ -427,17 +429,24 @@ public final class NuxeoClientEmbedded {
         if (repoName != null) {
         	repository = getRepositoryManager().getRepository(repoName);
         } else {
-        	repository = getRepositoryManager().getDefaultRepository();
+        	repository = getRepositoryManager().getDefaultRepository(); // Add a log info statement here stating that since no repo name was given we'll use the default repo instead
         }
-        RepositoryInstance repo = newRepositoryInstance(repository);
-    	String key = repo.getSessionId();
-        repositoryInstances.put(key, repo);
-        if (logger.isTraceEnabled()) {
-        	logger.trace("Added a new repository instance to our repo list.  Current count is now: "
-        			+ repositoryInstances.size());
+        
+        if (repository != null) {
+	        result = newRepositoryInstance(repository);
+	    	String key = result.getSessionId();
+	        repositoryInstances.put(key, result);
+	        if (logger.isTraceEnabled()) {
+	        	logger.trace("Added a new repository instance to our repo list.  Current count is now: "
+	        			+ repositoryInstances.size());
+	        }
+        } else {
+        	String errMsg = String.format("Could not open a session to the Nuxeo repository='%s'", repoName);
+        	logger.error(errMsg);
+        	throw new Exception(errMsg);
         }
 
-        return repo;
+        return result;
     }
 
     public void releaseRepository(RepositoryInstance repo) throws Exception {

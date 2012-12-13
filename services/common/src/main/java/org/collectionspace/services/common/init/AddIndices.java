@@ -123,7 +123,7 @@ public class AddIndices extends InitHandler implements IInitHandler {
         String sql = "";
         String indexName = tableName + INDEX_SEP + columnName + INDEX_SUFFIX;
         try {
-            DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType();
+        	DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType(dataSourceName, repositoryName);
             if (indexExists(dataSourceName, repositoryName, databaseProductType,
             		tableName, columnName, indexName)) {
                 logger.trace("Index already exists for column " + columnName

@@ -235,10 +235,10 @@ public class NuxeoConnectorEmbedded {
 	 */
 	public RepositoryInstance getRepositorySession(RepositoryDomainType repoDomain) throws Exception {
 		RepositoryInstance repoSession = getClient().openRepository(repoDomain);
-		if (logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled() && repoSession != null) {
 			logger.debug("getRepositorySession() opened repository session");
 			String repoName = repoDomain.getRepositoryName();
-			String databaseName = this.getDatabaseName(repoName);
+			String databaseName = this.getDatabaseName(repoName); // For debugging purposes only
 		}
 		return repoSession;
 	}

@@ -191,7 +191,7 @@ public class IDResource extends AbstractCollectionSpaceResourceImpl<PoxPayloadIn
         Response response = builder.build();
         
         try {
-            ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext(xmlPayload);
+            ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx = createServiceContext();
 
             String csid = UUID.randomUUID().toString();
             service.createIDGenerator(ctx, csid, xmlPayload);
@@ -213,8 +213,11 @@ public class IDResource extends AbstractCollectionSpaceResourceImpl<PoxPayloadIn
                     Response.created(path.build()).entity("").type(MediaType.TEXT_PLAIN).build();
 
         } catch (Exception e) {
-            response =
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
+            		e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+            if (logger.isDebugEnabled() == true) {
+            	e.printStackTrace();
+            }
         }
 
         return response;

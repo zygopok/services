@@ -151,7 +151,7 @@ public interface ServiceContext<IT, OT> {
     /*
      * The name of the repository/db for the current context
      */
-    public String getRepositoryName();
+    public String getRepositoryName() throws Exception;
     
     /*
      * Get's the name/label used to create the storage container (folder or directory name)

@@ -56,6 +56,7 @@ import org.collectionspace.services.common.storage.JDBCTools;
 import org.collectionspace.services.jaxb.InvocableJAXBSchema;
 import org.collectionspace.services.nuxeo.client.java.DocHandlerBase;
 import org.collectionspace.services.nuxeo.client.java.RepositoryJavaClientImpl;
+import org.jfree.util.Log;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.PropertyException;
 import org.nuxeo.ecm.core.api.repository.RepositoryInstance;
@@ -260,8 +261,20 @@ public class ReportDocumentModelHandler extends DocHandlerBase<ReportsCommon> {
     }
 
     private Connection getConnection() throws NamingException, SQLException {
+    	Connection result = null;
+    	
     	ServiceContext ctx = this.getServiceContext();
-    	return JDBCTools.getConnection(JDBCTools.NUXEO_DATASOURCE_NAME, ctx.getRepositoryName());
+    	try {
+    		String repositoryName = ctx.getRepositoryName();
+	    	if (repositoryName != null && repositoryName.trim().isEmpty() == false) {
+	    		result = JDBCTools.getConnection(JDBCTools.NUXEO_DATASOURCE_NAME, repositoryName);
+	    	}
+		} catch (Exception e) {
+			Log.error(e);
+			throw new NamingException();
+		}
+    	
+    	return result;
     }
 
 }

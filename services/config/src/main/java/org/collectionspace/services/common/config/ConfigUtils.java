@@ -31,18 +31,23 @@ public class ConfigUtils {
     public static String getRepositoryName(TenantBindingType tenantBindingType, String domainName) {
 		String result = null;
 		
-		List<RepositoryDomainType> repoDomainList = tenantBindingType.getRepositoryDomain();
-		if (repoDomainList != null && repoDomainList.isEmpty() == false) {
-			for (RepositoryDomainType repoDomain : repoDomainList) {
-				if (repoDomain.getName().equalsIgnoreCase(domainName)) {
-					result = repoDomain.getRepositoryName();
-					break; // We found a match so exit the loop
+		
+		if (domainName != null && domainName.trim().isEmpty() == false) {
+			List<RepositoryDomainType> repoDomainList = tenantBindingType.getRepositoryDomain();
+			if (repoDomainList != null && repoDomainList.isEmpty() == false) {
+				for (RepositoryDomainType repoDomain : repoDomainList) {
+					if (repoDomain.getName().equalsIgnoreCase(domainName)) {
+						result = repoDomain.getRepositoryName();
+						break; // We found a match so exit the loop
+					}
 				}
 			}
+		} else {
+			logger.error(String.format("No domain name was specified on call to getRepositoryName() method."));
 		}
 		
-		if (result == null) {
-			logger.error(String.format("Could not find the repository name for tenent name='%s' and domain='%s'",
+		if (result == null && logger.isTraceEnabled()) {
+			logger.trace(String.format("Could not find the repository name for tenent name='%s' and domain='%s'",
 					tenantBindingType.getName(), domainName));
 		}
 		

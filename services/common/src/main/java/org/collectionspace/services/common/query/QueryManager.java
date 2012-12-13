@@ -62,7 +62,7 @@ public class QueryManager {
 	 */
 	static public String createWhereClauseForPartialMatch(ServiceContext ctx,
 			String field,
-			String partialTerm) {
+			String partialTerm) throws Exception {
 		String repositoryName = ctx.getRepositoryName();
 		return queryManager.createWhereClauseForPartialMatch(queryManager.getDatasourceName(),
 				repositoryName, field, partialTerm);

@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.collectionspace.services.common.ResourceMap;
 import org.collectionspace.services.common.ServiceMain;
 import org.collectionspace.services.common.config.ConfigUtils;
+import org.collectionspace.services.common.config.TenantBindingConfigReaderImpl;
 import org.collectionspace.services.common.security.UnauthorizedException;
 import org.collectionspace.services.config.service.ServiceBindingType;
 import org.collectionspace.services.config.tenant.TenantBindingType;
@@ -113,14 +114,24 @@ public class RemoteServiceContextImpl<IT, OT>
     }
 
     /*
-     * Returns the name of the resource's/service's acting repository
+     * Returns the name of the service's acting repository.  Gets this from the tenant and service bindings files
      */
-    public String getRepositoryName() {
+    public String getRepositoryName() throws Exception {
     	String result = null;
     	
-    	TenantBindingType tenantBindingType = ServiceMain.getInstance().getTenantBindingConfigReader().getTenantBinding(this.getTenantId());
+    	TenantBindingConfigReaderImpl tenantBindingConfigReader = ServiceMain.getInstance().getTenantBindingConfigReader();
+    	String tenantId = this.getTenantId();
+    	TenantBindingType tenantBindingType = tenantBindingConfigReader.getTenantBinding(tenantId);
     	ServiceBindingType serviceBindingType = this.getServiceBinding();
-    	result = ConfigUtils.getRepositoryName(tenantBindingType, serviceBindingType.getRepositoryDomain());
+    	String servicesRepoDomainName = serviceBindingType.getRepositoryDomain();
+    	if (servicesRepoDomainName != null && servicesRepoDomainName.trim().isEmpty() == false) {
+    		result = ConfigUtils.getRepositoryName(tenantBindingType, servicesRepoDomainName);
+    	} else {
+    		String errMsg = String.format("The '%s' service for tenant ID=%s did not declare a repository domain in its service bindings.", 
+    				serviceBindingType.getName(), tenantId);
+    		throw new Exception(errMsg);
+    	}
+    	
     	return result;
     }
     

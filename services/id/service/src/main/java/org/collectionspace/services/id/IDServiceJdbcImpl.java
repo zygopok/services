@@ -225,7 +225,7 @@ public class IDServiceJdbcImpl implements IDService {
      * @throws  DocumentNotFoundException if the requested ID generator could not be found.
      */
     public void updateLastID(ServiceContext<PoxPayloadIn, PoxPayloadOut> ctx, String csid, String lastId)
-            throws IllegalStateException, DocumentNotFoundException, NamingException, SQLException {
+            throws IllegalStateException, DocumentNotFoundException, NamingException, SQLException, Exception {
 
         logger.debug("> in updateLastID");
 

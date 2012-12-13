@@ -1393,7 +1393,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
     }
 
     public RepositoryInstance getRepositorySession(ServiceContext ctx) throws Exception {
-    	return getRepositorySession(ctx, null);
+    	return getRepositorySession(ctx, ctx.getRepositoryName());
     }
     
     public RepositoryInstance getRepositorySession(String repoName) throws Exception {
@@ -1401,7 +1401,7 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
     }
     
     /**
-     * Gets the repository session. - Package access only.
+     * Gets the repository session. - Package access only.  If the 'ctx' param is null then the repo name must be non-mull and vice-versa
      *
      * @return the repository session
      * @throws Exception the exception
@@ -1411,20 +1411,28 @@ public class RepositoryJavaClientImpl implements RepositoryClient<PoxPayloadIn, 
     	
     	Profiler profiler = new Profiler("getRepositorySession():", 2);
     	profiler.start();
-    	    	
+    	//
+    	// To get a connection to the Nuxeo repo, we need either a valid ServiceContext instance or a repository name
+    	//
         if (ctx != null) {
-        	repoSession = (RepositoryInstance)ctx.getCurrentRepositorySession();
-            if (logger.isDebugEnabled() == true) {
-            	if (repoSession != null) {
-            		logger.warn("Reusing the current context's repository session.");
-            	}
-            }        	
-        }
-        
-        // If we couldn't find a repoSession from the service context then we need to create a new one
+        	repoName = ctx.getRepositoryName(); // Notice we are overriding the passed in 'repoName' since we have a valid service context passed in to us
+        	repoSession = (RepositoryInstance)ctx.getCurrentRepositorySession(); // Look to see if one exists in the context before creating one
+        } else if (repoName == null || repoName.trim().isEmpty()) {
+        	String errMsg = String.format("We can't get a connection to the Nuxeo repo because the service context passed in was null and no repository name was passed in either.");
+        	logger.error(errMsg);
+        	throw new Exception(errMsg);
+        }        
+        //
+        // If we couldn't find a repoSession from the service context (or the context was null) then we need to create a new one using
+        // just the repo name
+        //
         if (repoSession == null) {
 	        NuxeoClientEmbedded client = NuxeoConnectorEmbedded.getInstance().getClient();
 	        repoSession = client.openRepository(repoName);
+        } else {
+            if (logger.isDebugEnabled() == true) {
+            	logger.warn("Reusing the current context's repository session.");
+            }        	
         }
         
         if (logger.isTraceEnabled()) {

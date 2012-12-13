@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
-import javax.sql.DataSource;
 import org.collectionspace.services.common.api.Tools;
 import org.collectionspace.services.common.storage.JDBCTools;
 import org.collectionspace.services.config.service.InitHandler.Params.Field;
@@ -45,10 +44,11 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
      * the configuration params.
      */
     @Override
-    public void onRepositoryInitialized(DataSource dataSource,
-            ServiceBindingType sbt,
-            List<Field> fields,
-            List<Property> properties) throws Exception {
+    public void onRepositoryInitialized(String dataSourceName,
+    		String repositoryName,
+    		ServiceBindingType sbt, 
+    		List<Field> fields, 
+    		List<Property> properties) throws Exception {
 
         /*
          if (logger.isInfoEnabled() && sbt != null) {
@@ -70,7 +70,7 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
             return;
         }
 
-        String scriptPath = getSqlScriptPath(scriptName);
+        String scriptPath = getSqlScriptPath(dataSourceName, repositoryName, scriptName);
         if (Tools.isBlank(scriptPath)) {
             logger.warn("Could not get path to SQL script.");
             logger.warn(CANNOT_PERFORM_TASKS_MESSAGE);
@@ -84,7 +84,7 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
             return;
         }
 
-        runScript(dataSource, scriptContents, scriptPath);
+        runScript(dataSourceName, repositoryName, scriptContents, scriptPath);
     }
 
     private String getSqlScriptName(List<Property> properties) {
@@ -100,11 +100,11 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
         return scriptName;
     }
 
-    private String getSqlScriptPath(String scriptName) throws Exception {
+    private String getSqlScriptPath(String dataSourceName, String repositoryName, String scriptName) throws Exception {
         String scriptPath =
                 DATABASE_RESOURCE_DIRECTORY_NAME
                 + "/"
-                + JDBCTools.getDatabaseProductType()
+                + JDBCTools.getDatabaseProductType(dataSourceName, repositoryName)
                 + "/"
                 + scriptName;
         return scriptPath;
@@ -169,10 +169,10 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
         return sb.toString();
     }
 
-    private void runScript(DataSource dataSource, String scriptContents, String scriptPath) {
+    private void runScript(String dataSourceName, String repositoryName, String scriptContents, String scriptPath) {
         int rows = 0;
         try {
-            rows = JDBCTools.executeUpdate(dataSource, scriptContents);
+            rows = JDBCTools.executeUpdate(dataSourceName, repositoryName, scriptContents);
         } catch (Throwable e) {
             logger.warn("Running SQL script " + scriptPath + " resulted in error: ", e);
             rows = -1;

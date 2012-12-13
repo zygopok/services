@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import javax.sql.DataSource;
-
 /** Concrete class which does nothing, but subclasses may override to do
  *  some action on the event onRepositoryInitialized(), such as sending JDBC
  *  calls to the repository to add indices, etc.

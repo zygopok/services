@@ -77,7 +77,7 @@ public class ReportPostInitHandler extends InitHandler implements IInitHandler {
         Statement stmt = null;
         String sql = "";
         try {
-            DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType();
+            DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType(dataSourceName, repositoryName);
             if (databaseProductType == DatabaseProductType.MYSQL) {
             	// Nothing to do: MYSQL already does wildcard grants in init_db.sql
             } else if(databaseProductType != DatabaseProductType.POSTGRESQL) {

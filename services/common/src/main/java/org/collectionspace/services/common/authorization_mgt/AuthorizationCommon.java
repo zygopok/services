@@ -521,7 +521,8 @@ public class AuthorizationCommon {
         	// Fourth, bind accounts to tenants. Assume that if the users were already there,
         	// then the accounts were bound to tenants correctly
         	String insertAccountTenantSQL;
-        	DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType();
+        	DatabaseProductType databaseProductType = JDBCTools.getDatabaseProductType(JDBCTools.CSPACE_DATASOURCE_NAME,
+        			JDBCTools.DEFAULT_CSPACE_DATABASE_NAME);
         	if (databaseProductType == DatabaseProductType.MYSQL) {
         		insertAccountTenantSQL =
         			"INSERT INTO accounts_tenants (TENANTS_ACCOUNTSCOMMON_CSID,tenant_id) "

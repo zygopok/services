@@ -115,6 +115,8 @@ public class JDBCTools {
             throw new NamingException(errMsg);
         }
     	
+    	// FIXME: REM - We can rid ourselves of this special case by using the DEFAULT_NUXEO_DATABASE_NAME as the default
+    	// value for the "repositoryName" attribute in the tenant bindings XSD (XML Schema) definition.
     	//
     	// *Special Case* - Nuxeo's default repository name is "default" but the database is called "nuxeo"
     	//
@@ -143,13 +145,15 @@ public class JDBCTools {
 	        
 	        try {
 	        	conn = dataSource.getConnection();
+	        	result = conn;
+	        	if (logger.isTraceEnabled() == true && conn != null) {
+	        		logger.trace(String.format("Connection made to repository = '%s' using datasource = '%s'", repositoryName, dataSourceName));
+	        	}
 	        } finally {
 	        	dataSource.setUrl(urlTemplate); // Reset the data source URL value back to the template value
 	        }
     	}
-    	
-        result = conn;
-        
+    	        
         return result;
     }
 

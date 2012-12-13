@@ -279,7 +279,7 @@ public class ServiceMain {
                 //Get the list of InitHandler elements, extract the first one (only one supported right now) and fire it using reflection.
                 List<org.collectionspace.services.config.service.InitHandler> list = sbt.getInitHandler();
                 if (list != null && list.size() > 0) {
-                	org.collectionspace.services.config.service.InitHandler handlerType = list.get(0);
+                	org.collectionspace.services.config.service.InitHandler handlerType = list.get(0);  // REM - 12/2012: We might want to think about supporting multiple post-init handlers
                     String initHandlerClassname = handlerType.getClassname();
 
                     List<org.collectionspace.services.config.service.InitHandler.Params.Field>

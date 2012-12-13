@@ -36,6 +36,7 @@ public class ConfigUtils {
 			for (RepositoryDomainType repoDomain : repoDomainList) {
 				if (repoDomain.getName().equalsIgnoreCase(domainName)) {
 					result = repoDomain.getRepositoryName();
+					break; // We found a match so exit the loop
 				}
 			}
 		}

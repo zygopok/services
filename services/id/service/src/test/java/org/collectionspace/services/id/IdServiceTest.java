@@ -30,6 +30,8 @@ import javax.ws.rs.core.Response;
 import org.collectionspace.services.client.CollectionSpaceClient;
 import org.collectionspace.services.client.IdClient;
 import org.collectionspace.services.client.test.AbstractServiceTestImpl;
+import org.collectionspace.services.client.test.BaseServiceTest;
+import org.collectionspace.services.client.test.ServiceRequestType;
 import org.collectionspace.services.common.document.BadRequestException;
 import org.collectionspace.services.common.document.DocumentNotFoundException;
 import org.collectionspace.services.id.IDGeneratorSerializer;

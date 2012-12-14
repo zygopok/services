@@ -174,7 +174,7 @@ public class RunSqlScript extends InitHandler implements IInitHandler {
         try {
             rows = JDBCTools.executeUpdate(dataSourceName, repositoryName, scriptContents);
         } catch (Throwable e) {
-            logger.warn("Running SQL script " + scriptPath + " resulted in error: ", e);
+            logger.warn("Running SQL script " + scriptPath + " resulted in error: ", e.getMessage());
             rows = -1;
         }
         // FIXME: Verify which row values represent failure; should there always

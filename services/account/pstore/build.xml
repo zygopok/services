@@ -22,7 +22,6 @@
         <tstamp/>
     </target>
 
-
     <target name="package" depends="package-unix,package-windows"
             description="Package CollectionSpace Services" />
     <target name="package-unix" if="osfamily-unix">
@@ -108,26 +107,9 @@
         </exec>
     </target>
 
-
-    <target name="setup_hibernate.cfg" description="replace property keywords in hibernate.cfg.xml">
-        <property name="src.hibernate.cfg" value="${basedir}/src/test/resources/hibernate.cfg.xml"/>
-        <property name="dest.hibernate.cfg" value="${basedir}/target/test-classes/hibernate.cfg.xml"/>
-        <delete file="${dest.hibernate.cfg}" verbose="true" />
-        <filter token="DB_CSPACE_URL" value="${db.jdbc.cspace.url.encoded}" />
-        <filter token="DB_DRIVER_CLASS" value="${db.jdbc.driver.class}" />
-        <filter token="DB_CSPACE_USER" value="${db.cspace.user}" />
-        <filter token="DB_CSPACE_PASSWORD" value="${env.DB_CSPACE_PASSWORD}" /> <!-- double-sub from ${db.cspace.user.password} fails -->
-        <filter token="DB_DIALECT" value="${db.dialect}" />
-        <copy todir="${basedir}/target/test-classes" filtering="true">
-            <fileset dir="${basedir}/src/test/resources">
-                <include name="hibernate.cfg.xml" />
-            </fileset>
-        </copy>
-    </target>
-
     <target name="gen_ddl" depends="gen_ddl-unix,gen_ddl-windows"
-            description="geneate ddl" />
-    <target name="gen_ddl-unix" if="osfamily-unix" depends="setup_hibernate.cfg">
+            description="generate ddl" />
+    <target name="gen_ddl-unix" if="osfamily-unix">
         <exec executable="mvn" failonerror="true">
             <arg value="-Pddl" />
             <arg value="process-test-resources" />
@@ -137,7 +119,7 @@
             <arg value="${mvn.opts}" />
         </exec>
     </target>
-    <target name="gen_ddl-windows" if="osfamily-windows" depends="setup_hibernate.cfg">
+    <target name="gen_ddl-windows" if="osfamily-windows">
         <exec executable="cmd" failonerror="true">
             <arg value="/c" />
             <arg value="mvn.bat" />
@@ -152,7 +134,7 @@
 
     <target name="create_cspace_db"
             description="create tables(s), indices for account service">
-				<sql driver="${db.jdbc.driver.class}"
+		<sql driver="${db.jdbc.driver.class}"
              url="${db.jdbc.cspace.url}"
              userid="${db.cspace.user}"
              password="${db.cspace.user.password}"
@@ -162,7 +144,7 @@
                 <pathelement path="${db.driver.jar}"/>
             </classpath>
         </sql>
-						<sql driver="${db.jdbc.driver.class}"
+		<sql driver="${db.jdbc.driver.class}"
              url="${db.jdbc.cspace.url}"
              userid="${db.cspace.user}"
              password="${db.cspace.user.password}"
@@ -170,7 +152,7 @@
             <classpath>
                 <pathelement path="${db.driver.jar}"/>
             </classpath>
-					</sql>
+		</sql>
     </target>
 	
 	<!-- We are copying only the scripts that are committed to the source tree.  We're *not* copying the ones that

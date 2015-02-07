@@ -31,15 +31,15 @@
         <constructor-arg ref="dataSource"/>
         <constructor-arg ref="lookupStrategy"/>
         <constructor-arg ref="aclCache"/>
-        <property name="classIdentityQuery" value="@CLASS_ID_QUERY@"/>
-        <property name="sidIdentityQuery" value="@SID_ID_QUERY@"/>
+        <property name="classIdentityQuery" value="${db.spring.acl.classIdentityQuery}"/>
+        <property name="sidIdentityQuery" value="${db.spring.acl.sidIdentityQuery}"/>
      </bean>
 
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="@DB_DRIVER_CLASS@"/>
-        <property name="url" value="@DB_CSPACE_URL@"/>
-        <property name="username" value="@DB_CSPACE_USER@"/>
-        <property name="password" value="@DB_CSPACE_PASSWORD@"/>
+        <property name="driverClassName" value="{db.jdbc.driver.class}"/>
+        <property name="url" value="${db.jdbc.cspace.url.encoded}"/>
+        <property name="username" value="${db.cspace.user}"/>
+        <property name="password" value="${env.DB_CSPACE_PASSWORD}"/>
     </bean>
 
     <bean id="lookupStrategy" class="org.springframework.security.acls.jdbc.BasicLookupStrategy">

@@ -19,6 +19,12 @@
 		<nuxeo.core.version>${nuxeo.general.release}</nuxeo.core.version>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.security.version>3.0.5.RELEASE</spring.security.version>
+		<!--
+			Deployment related config properties
+		-->
+		<cspace.instance.id></cspace.instance.id> <!-- Default value is empty.  Override with mvn <goal> -Dcspace.instance.id=<overridevalue> -->
+		<db.host>localhost</db.host> <!-- Override with mvn <goal> -Ddb.host=<overridevalue> -->
+		<db.port>5432</db.port> <!-- Override with mvn <goal> -Ddb.port=<overridevalue> -->		
 	</properties>
 
 	<distributionManagement>

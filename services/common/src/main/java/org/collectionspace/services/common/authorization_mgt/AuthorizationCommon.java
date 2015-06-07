@@ -64,12 +64,15 @@ public class AuthorizationCommon {
     // ActionGroup labels/constants
     //
 	
-	// for READ-WRITE
+	// for READ-WRITE-DELETE
     final public static String ACTIONGROUP_CRUDL_NAME = "CRUDL";
     final public static ActionType[] ACTIONSET_CRUDL = {ActionType.CREATE, ActionType.READ, ActionType.UPDATE, ActionType.DELETE, ActionType.SEARCH};
     // for READ-ONLY
     final public static String ACTIONGROUP_RL_NAME = "RL";
     final public static ActionType[] ACTIONSET_RL = {ActionType.READ, ActionType.SEARCH};
+    // for READ-WRITE-ONLY
+    final public static String ACTIONGROUP_CRUL_NAME = "CRUL";
+    final public static ActionType[] ACTIONSET_CRUL = {ActionType.CREATE, ActionType.READ, ActionType.UPDATE, ActionType.SEARCH};
 
     
 	/*
@@ -82,6 +85,7 @@ public class AuthorizationCommon {
 	
 	static ActionGroup ACTIONGROUP_CRUDL;
 	static ActionGroup ACTIONGROUP_RL;
+	static ActionGroup ACTIONGROUP_CRUL;
 	
 	// A static block to initialize the predefined action groups
 	static {
@@ -94,6 +98,10 @@ public class AuthorizationCommon {
 		ACTIONGROUP_RL = ac.new ActionGroup();
 		ACTIONGROUP_RL.name = ACTIONGROUP_RL_NAME;
 		ACTIONGROUP_RL.actions = ACTIONSET_RL;
+		// For WRITER
+		ACTIONGROUP_CRUL = ac.new ActionGroup();
+		ACTIONGROUP_CRUL.name = ACTIONGROUP_CRUL_NAME;
+		ACTIONGROUP_CRUL.actions = ACTIONSET_CRUL;
 
 	}
 	
@@ -108,6 +116,7 @@ public class AuthorizationCommon {
 
     final public static String ROLE_TENANT_ADMINISTRATOR = "TENANT_ADMINISTRATOR";
     final public static String ROLE_TENANT_READER = "TENANT_READER";
+    final public static String ROLE_TENANT_WRITER = "TENANT_WRITER";
 	
     public static final String TENANT_MANAGER_USER = "tenantManager"; 
     public static final String TENANT_MANAGER_SCREEN_NAME = TENANT_MANAGER_USER; 
@@ -258,6 +267,8 @@ public class AuthorizationCommon {
     		result = ACTIONGROUP_CRUDL;
     	} else if (actionGroupStr.equalsIgnoreCase(ACTIONGROUP_RL_NAME)) {
     		result = ACTIONGROUP_RL;
+    	} else if (actionGroupStr.equalsIgnoreCase(ACTIONGROUP_CRUL_NAME)) {
+    		result = ACTIONGROUP_CRUL;
     	}
     	
     	return result;
@@ -301,7 +312,7 @@ public class AuthorizationCommon {
         return perm;
     }
     
-    private static Permission createWorkflowPermission(TenantBindingType tenantBinding,
+	private static Permission createWorkflowPermission(TenantBindingType tenantBinding,
     		ServiceBindingType serviceBinding,
     		TransitionDef transitionDef,
     		ActionGroup actionGroup)
@@ -1072,7 +1083,9 @@ public class AuthorizationCommon {
 		        TenantBindingType tenantBinding = tenantBindings.get(tenantId);
 	    		Role adminRole = AuthorizationCommon.getRole(em, tenantBinding.getId(), ROLE_TENANT_ADMINISTRATOR);
 	    		Role readonlyRole = AuthorizationCommon.getRole(em, tenantBinding.getId(), ROLE_TENANT_READER);
-		        for (ServiceBindingType serviceBinding : tenantBinding.getServiceBindings()) {
+	    		Role writeRole = AuthorizationCommon.getRole(em, tenantBinding.getId(), ROLE_TENANT_WRITER);
+		        
+	    		for (ServiceBindingType serviceBinding : tenantBinding.getServiceBindings()) {
 		        	String prop = ServiceBindingUtils.getPropertyValue(serviceBinding, REFRESH_AUTZ_PROP);
 		        	if (prop == null ? true : Boolean.parseBoolean(prop)) {
 			        		try {
@@ -1086,17 +1099,12 @@ public class AuthorizationCommon {
 				        		//
 				        		// Create the permission for the read-only role
 				        		Permission readonlyPerm = createWorkflowPermission(tenantBinding, serviceBinding, transitionDef, ACTIONGROUP_RL);
-				        		
-				        		Profiler profiler = new Profiler(AuthorizationCommon.class, 1);
-				        		profiler.start("createDefaultPermissions started:" + readonlyPerm.getCsid());
 				        		persist(em, readonlyPerm, readonlyRole, true); // Persist/store the permission and permrole records and related Spring Security info
-				        		profiler.stop();
-				        		logger.debug("Finished full perm generation for "
-				        				+ ":" + tenantBinding.getId()
-				        				+ ":" + serviceBinding.getName()
-				        				+ ":" + transitionDef.getName()
-				        				+ ":" + ACTIONGROUP_RL
-				        				+ ":" + profiler.getCumulativeTime());			        		
+
+				        		//
+				        		// Create the permission for the read-write-only role
+				        		Permission writePerm = createWorkflowPermission(tenantBinding, serviceBinding, transitionDef, ACTIONGROUP_CRUL);
+				        		persist(em, writePerm, writeRole, true); // Persist/store the permission and permrole records and related Spring Security info				        		
 				        	}
 				        	em.getTransaction().commit();
 			        	} catch (IllegalStateException e) {

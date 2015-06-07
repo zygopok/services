@@ -67,12 +67,20 @@ public class AuthorizationGen {
     final Logger logger = LoggerFactory.getLogger(AuthorizationGen.class);
     private List<Permission> tenantMgmntPermList = new ArrayList<Permission>();
     private List<PermissionRole> tenantMgmntPermRoleList = new ArrayList<PermissionRole>();
+    
     private List<Permission> adminPermList = new ArrayList<Permission>();
     private List<PermissionRole> adminPermRoleList = new ArrayList<PermissionRole>();
+    
     private List<Permission> readerPermList = new ArrayList<Permission>();
     private List<PermissionRole> readerPermRoleList = new ArrayList<PermissionRole>();
+    
+    private List<Permission> writerPermList = new ArrayList<Permission>();
+    private List<PermissionRole> writerPermRoleList = new ArrayList<PermissionRole>();
+    
     private List<Role> adminRoles = new ArrayList<Role>();
     private List<Role> readerRoles = new ArrayList<Role>();
+    private List<Role> writerRoles = new ArrayList<Role>();
+
     private Role cspaceTenantMgmntRole;
     private Hashtable<String, TenantBindingType> tenantBindings =
             new Hashtable<String, TenantBindingType>();
@@ -115,6 +123,9 @@ public class AuthorizationGen {
 
             List<Permission> readerPerms = createDefaultReaderPermissions(tenantId, AUTHZ_IS_ENTITY_PROXY);
             readerPermList.addAll(readerPerms);
+            
+            List<Permission> writerPerms = createDefaultWriterPermissions(tenantId, AUTHZ_IS_ENTITY_PROXY);
+            writerPermList.addAll(writerPerms);            
         }
         
         List<Permission> tenantMgmntPerms = createDefaultTenantMgmntPermissions();
@@ -127,7 +138,7 @@ public class AuthorizationGen {
      * @param tenantId
      * @return
      */
-    public List<Permission> createDefaultAdminPermissions(String tenantId, boolean isEntityProxy) {
+    private List<Permission> createDefaultAdminPermissions(String tenantId, boolean isEntityProxy) {
         ArrayList<Permission> apcList = new ArrayList<Permission>();
         TenantBindingType tbinding = tenantBindings.get(tenantId);
         for (ServiceBindingType sbinding : tbinding.getServiceBindings()) {
@@ -173,7 +184,7 @@ public class AuthorizationGen {
      * createTenantMgmntPermission creates special admin permissions for tenant management
      * @return
      */
-    private Permission  createTenantMgmntPermission(String resourceName) {
+    private Permission createTenantMgmntPermission(String resourceName) {
     	Permission perm = buildAdminPermission(TENANT_MGMNT_ID, resourceName);
     	return perm;
     }
@@ -182,14 +193,57 @@ public class AuthorizationGen {
     	String description = "Generated admin permission.";
     	return AuthorizationCommon.createPermission(tenantId, resourceName, description, AuthorizationCommon.ACTIONGROUP_CRUDL_NAME);
     }
+    
+    private Permission buildReaderPermission(String tenantId, String resourceName) {
+    	String description = "Generated read-only permission.";
+    	return AuthorizationCommon.createPermission(tenantId, resourceName, description, AuthorizationCommon.ACTIONGROUP_RL_NAME);    	
+    }    
 
+    private Permission buildWriterPermission(String tenantId, String resourceName) {
+    	String description = "Generated write-only permission.";
+    	return AuthorizationCommon.createPermission(tenantId, resourceName, description, AuthorizationCommon.ACTIONGROUP_CRUL_NAME);    	
+    }
+    
     /**
      * createDefaultReaderPermissions creates read only permissions for all services
      * used by the given tenant
      * @param tenantId
      * @return
      */
-    public List<Permission> createDefaultReaderPermissions(String tenantId, boolean isEntityProxy) {
+    public List<Permission> createDefaultWiterPermissions(String tenantId, boolean isEntityProxy) {
+        ArrayList<Permission> apcList = new ArrayList<Permission>();
+        TenantBindingType tbinding = tenantBindings.get(tenantId);
+        for (ServiceBindingType sbinding : tbinding.getServiceBindings()) {
+            //add permissions for the main path
+        	String resourceName = sbinding.getName().toLowerCase().trim();
+        	if (isEntityProxy == true) {
+        		resourceName = SecurityUtils.getResourceEntity(resourceName);
+        	}        	
+            Permission perm = buildWriterPermission(tbinding.getId(),
+                    resourceName);
+            apcList.add(perm);
+
+            //add permissions for alternate paths
+            if (isEntityProxy == false) {
+	            List<String> uriPaths = sbinding.getUriPath();
+	            for (String uriPath : uriPaths) {
+	                perm = buildWriterPermission(tbinding.getId(),
+	                        uriPath.toLowerCase());
+	                apcList.add(perm);
+	            }
+            }
+        }
+        return apcList;
+
+    }
+    
+    /**
+     * createDefaultReaderPermissions creates read only permissions for all services
+     * used by the given tenant
+     * @param tenantId
+     * @return
+     */
+    private List<Permission> createDefaultReaderPermissions(String tenantId, boolean isEntityProxy) {
         ArrayList<Permission> apcList = new ArrayList<Permission>();
         TenantBindingType tbinding = tenantBindings.get(tenantId);
         for (ServiceBindingType sbinding : tbinding.getServiceBindings()) {
@@ -215,19 +269,48 @@ public class AuthorizationGen {
         return apcList;
 
     }
+    
+    /**
+     * createDefaultReaderPermissions creates read only permissions for all services
+     * used by the given tenant
+     * @param tenantId
+     * @return
+     */
+    private List<Permission> createDefaultWriterPermissions(String tenantId, boolean isEntityProxy) {
+        ArrayList<Permission> apcList = new ArrayList<Permission>();
+        TenantBindingType tbinding = tenantBindings.get(tenantId);
+        
+        for (ServiceBindingType sbinding : tbinding.getServiceBindings()) {
+            //add permissions for the main path
+        	String resourceName = sbinding.getName().toLowerCase().trim();
+        	if (isEntityProxy == true) {
+        		resourceName = SecurityUtils.getResourceEntity(resourceName);
+        	}        	
+            Permission perm = buildWriterPermission(tbinding.getId(), resourceName);
+            apcList.add(perm);
 
-    private Permission buildReaderPermission(String tenantId, String resourceName) {
-    	String description = "Generated read-only permission.";
-    	return AuthorizationCommon.createPermission(tenantId, resourceName, description, AuthorizationCommon.ACTIONGROUP_RL_NAME);    	
+            //add permissions for alternate paths
+            if (isEntityProxy == false) {
+	            List<String> uriPaths = sbinding.getUriPath();
+	            for (String uriPath : uriPaths) {
+	                perm = buildWriterPermission(tbinding.getId(), uriPath.toLowerCase());
+	                apcList.add(perm);
+	            }
+            }
+        }
+        
+        return apcList;
     }
-
+    
     public List<Permission> getDefaultPermissions() {
     	if (allPermList == null) {
 	        allPermList = new ArrayList<Permission>();
 	        allPermList.addAll(adminPermList);
 	        allPermList.addAll(readerPermList);
+	        allPermList.addAll(writerPermList);
 	        allPermList.addAll(tenantMgmntPermList);
     	}
+    	
         return allPermList;
     }
 
@@ -238,6 +321,10 @@ public class AuthorizationGen {
     public List<Permission> getDefaultReaderPermissions() {
         return readerPermList;
     }
+    
+    public List<Permission> getDefaultWiterPermissions() {
+        return writerPermList;
+    }    
 
     public List<Permission> getDefaultTenantMgmntPermissions() {
         return tenantMgmntPermList;
@@ -255,6 +342,9 @@ public class AuthorizationGen {
 
             Role rrole = buildTenantReaderRole(tenantId);
             readerRoles.add(rrole);
+            
+            Role wrole = buildTenantWriterRole(tenantId);
+            writerRoles.add(wrole);
         }
     }
 
@@ -284,12 +374,25 @@ public class AuthorizationGen {
         return result;
     }
     
+    private Role buildTenantWriterRole(String tenantId) {
+    	String type = "read-write only";
+        Role result = AuthorizationCommon.getRole(tenantId, AuthorizationCommon.ROLE_TENANT_WRITER);
+        
+        if (result == null) {
+    		// the role doesn't exist already, so we need to create it
+    		String description = "Generated tenant " + type + " role.";
+	        result = AuthorizationCommon.createRole(tenantId, AuthorizationCommon.ROLE_TENANT_WRITER, description, true /*immutable*/);
+        }
+        
+        return result;
+    }
 
     public List<Role> getDefaultRoles() {
     	if (allRoleList == null) {
 	        allRoleList = new ArrayList<Role>();
 	        allRoleList.addAll(adminRoles);
 	        allRoleList.addAll(readerRoles);
+	        allRoleList.addAll(writerRoles);
 	        // Finally, add the tenant manager role to the list
 	        allRoleList.add(cspaceTenantMgmntRole);
     	}
@@ -306,6 +409,12 @@ public class AuthorizationGen {
             PermissionRole permRdrRole = associatePermissionRoles(p, readerRoles, true);
             readerPermRoleList.add(permRdrRole);
         }
+        
+        for (Permission p : writerPermList) {
+            PermissionRole permWtrRole = associatePermissionRoles(p, writerRoles, true);
+            writerPermRoleList.add(permWtrRole);
+        }
+        
         
         //CSpace Tenant Manager has all access
         // PLS - this looks wrong. This should be a tenantMgmnt role, and only have access to 
@@ -391,6 +500,7 @@ public class AuthorizationGen {
 	        allPermRoleList = new ArrayList<PermissionRole>();
 	        allPermRoleList.addAll(adminPermRoleList);
 	        allPermRoleList.addAll(readerPermRoleList);
+	        allPermRoleList.addAll(writerPermRoleList);
 	        allPermRoleList.addAll(tenantMgmntPermRoleList);
     	}
         return allPermRoleList;
@@ -402,6 +512,10 @@ public class AuthorizationGen {
 
     public List<PermissionRole> getDefaultReaderPermissionRoles() {
         return readerPermRoleList;
+    }
+    
+    public List<PermissionRole> getDefaultWriterPermissionRoles() {
+        return writerPermRoleList;
     }
 
     private Role buildTenantMgmntRole() {
@@ -448,11 +562,10 @@ public class AuthorizationGen {
 
     public void exportDefaultPermissionRoles(String fileName) {
         PermissionsRolesList psrsl = new PermissionsRolesList();
-        psrsl.setPermissionRole(this.getDefaultAdminPermissionRoles());
-        toFile(psrsl, PermissionsRolesList.class,
-                fileName);
+        psrsl.setPermissionRole(this.getDefaultPermissionRoles());
+        toFile(psrsl, PermissionsRolesList.class, fileName);
         if (logger.isDebugEnabled()) {
-            logger.debug("exported permissions-roles to " + fileName);
+            logger.debug("Exported permissions-roles to " + fileName);
         }
     }
 

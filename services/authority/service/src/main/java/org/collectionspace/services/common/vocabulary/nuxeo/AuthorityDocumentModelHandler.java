@@ -310,8 +310,8 @@ public abstract class AuthorityDocumentModelHandler<AuthCommon>
     	
     	List<ListItem> listItemList = acl.getListItem();
     	for (ListItem listItem:listItemList) {
-    		Boolean proposed = getBooleanValue(listItem, AuthorityItemJAXBSchema.PROPOSED);
-    		if (proposed == false) { // exclude "proposed" (i.e., local-only items)
+    		String workflowState = getStringValue(listItem, AuthorityItemJAXBSchema.WORKFLOW_STATE);
+    		if (workflowState.equalsIgnoreCase(WorkflowClient.WORKFLOWSTATE_PROJECT)) { // exclude local-only items (IOW, include only replicated items)
     			result.add(AbstractCommonListUtils.ListItemGetElementValue(listItem, AuthorityItemJAXBSchema.SHORT_IDENTIFIER));
     		}
     	}

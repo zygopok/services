@@ -57,7 +57,6 @@ import org.collectionspace.services.nuxeo.client.java.RepositoryClientImpl;
 import org.collectionspace.services.nuxeo.util.NuxeoUtils;
 import org.collectionspace.services.relation.RelationsCommonList;
 import org.collectionspace.services.vocabulary.VocabularyItemJAXBSchema;
-
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.PropertyException;
@@ -65,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -404,6 +404,18 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon>
     	}
     }
         
+    private boolean isCurrentlyLocalOnly(DocumentModel itemDocModel) {
+    	boolean result = false;
+    	
+        String workflowState = (String) NuxeoUtils.getProperyValue(itemDocModel, AuthorityItemJAXBSchema.WORKFLOW_STATE);
+        if (workflowState.equalsIgnoreCase(WorkflowClient.WORKFLOWSTATE_PROJECT) ||
+        		workflowState.equalsIgnoreCase(WorkflowClient.WORKFLOWSTATE_DELETED)) {
+        	result = true;
+        }
+    	
+    	return result;
+    }
+    
     /**
      * This method synchronizes/updates a single authority item resource.
      * for the handleSync method, the wrapDoc argument contains a authority item specifier.
@@ -424,7 +436,7 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon>
         			authorityItemSpecifier.getItemSpecifier().value));
         }
         Long localItemRev = (Long) NuxeoUtils.getProperyValue(itemDocModel, AuthorityItemJAXBSchema.REV);
-        Boolean localIsProposed = (Boolean) NuxeoUtils.getProperyValue(itemDocModel, AuthorityItemJAXBSchema.PROPOSED);
+        Boolean localIsProposed = this.isCurrentlyLocalOnly(itemDocModel);
         String localItemCsid = itemDocModel.getName();
         String localItemWorkflowState = itemDocModel.getCurrentLifeCycleState();
         String itemShortId = (String) NuxeoUtils.getProperyValue(itemDocModel, AuthorityItemJAXBSchema.SHORT_IDENTIFIER);
@@ -749,7 +761,7 @@ public abstract class AuthorityItemDocumentModelHandler<AICommon>
     	// If this is a proposed item (not part of the SAS), mark it as such
     	//
         documentModel.setProperty(authorityItemCommonSchemaName, AuthorityItemJAXBSchema.PROPOSED,
-        		new Boolean(this.getIsProposed()));
+        		new Boolean(false)); // Always false because this property is deprecated.
         //
         // If it is a SAS authority item, mark it as such
         //

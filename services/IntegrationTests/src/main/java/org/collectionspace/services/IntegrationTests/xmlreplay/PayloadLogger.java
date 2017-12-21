@@ -463,10 +463,19 @@ public class PayloadLogger{
     public static File saveFile(String dir, String relativeName, String content){
         File result = null;
         PrintWriter writer;
-            result = new File(dir, relativeName);
-            writer = new PrintWriter(new FileOutputStream(result));
-            System.out.println("Can't write to file in saveFile: " + relativeName + "  \r\n" + e);
-            return null;
+           try{
+
+result = new File(dir, relativeName);
+  
+writer = new PrintWriter(new FileOutputStream(result));
+ 
+}
+catch (Exception e)
+{
+System.out.println("Can't write to file in saveFile: " + relativeName + "  \r\n" + e);
+ return null;
+
+}
         writer.write(content);
         writer.close();
         return result;

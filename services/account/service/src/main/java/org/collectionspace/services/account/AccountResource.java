@@ -266,17 +266,17 @@ public class AccountResource extends SecurityResourceBase {
         // Retrieve the token from the DB
         //
         Token token;
-		try {
+		
 			token = TokenStorageClient.get(tokenId);
 			if (token != null && token.isEnabled() == false) {
 				throw new DocumentNotFoundException();
-			}
-		} catch (DocumentNotFoundException e1) {
+			
+		} 
     		String errMsg = String.format("The token '%s' is not valid or does not exist.",
     				tokenId);
         	response = Response.status(Response.Status.BAD_REQUEST).entity(errMsg).type("text/plain").build();
         	return response;
-		}
+		
 
 		//
 		// Make sure the token is not null
